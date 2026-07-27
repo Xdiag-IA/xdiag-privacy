@@ -50,7 +50,12 @@ function pedir(url, headers, saltos = 0) {
       }
       if (statusCode !== 200 && statusCode !== 206) {
         res.resume();
-        return reject(new Error(`HTTP ${statusCode} ao baixar`));
+        // O status viaja junto para a camada de cima montar uma mensagem que
+        // signifique alguma coisa para quem esta instalando. "HTTP 404" sozinho
+        // nao diz a ninguem o que fazer a seguir.
+        const err = new Error(`HTTP ${statusCode} ao baixar`);
+        err.statusCode = statusCode;
+        return reject(err);
       }
       resolve(res);
     });
@@ -104,6 +109,9 @@ async function baixar(url, destino, aoProgredir) {
 
       return;
     } catch (err) {
+      // 404 e 403 nao melhoram com repeticao: o arquivo nao esta la, ou o
+      // acesso foi barrado. Insistir so faz o usuario esperar a toa.
+      if (err.statusCode === 404 || err.statusCode === 403) throw err;
       if (tentativa === MAX_TENTATIVAS) throw err;
       // Espera crescente. O arquivo parcial fica no disco de proposito: a
       // proxima tentativa continua dele.

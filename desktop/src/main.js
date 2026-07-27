@@ -259,6 +259,70 @@ function setSplashStatus(text, pct = null) {
   }
 }
 
+/**
+ * Traduz a falha em algo que quem esta instalando consiga agir.
+ *
+ * "HTTP 404 ao baixar" nao diz nada para um medico na frente da tela. Cada
+ * causa provavel tem um proximo passo diferente, e e o proximo passo que a
+ * mensagem precisa entregar.
+ */
+function explicarFalha(err) {
+  const msg = (err && err.message) || String(err);
+  const status = err && err.statusCode;
+
+  if (status === 404) {
+    return {
+      titulo: "Componente não encontrado no servidor",
+      texto:
+        "O aplicativo precisa baixar um componente na primeira execução, mas ele não " +
+        "está disponível no endereço esperado.\n\n" +
+        "Isso normalmente significa que esta versão do instalador é mais nova que a " +
+        "publicada. Baixe o instalador mais recente em:\n" +
+        "github.com/Xdiag-IA/xdiag-privacy/releases",
+    };
+  }
+  if (status === 403) {
+    return {
+      titulo: "Download bloqueado",
+      texto:
+        "O servidor recusou o download. Em rede de empresa ou de clínica isso " +
+        "costuma ser o proxy ou o firewall bloqueando o acesso ao GitHub.\n\n" +
+        "Peça liberação para github.com e objects.githubusercontent.com, ou instale " +
+        "de uma rede sem restrição.",
+    };
+  }
+  if (/não corresponde ao esperado|nao corresponde ao esperado/i.test(msg)) {
+    return {
+      titulo: "O arquivo baixado veio corrompido",
+      texto:
+        "A verificação de integridade falhou e o arquivo foi descartado, para não " +
+        "instalar nada adulterado.\n\nIsso costuma ser download interrompido ou " +
+        "proxy que altera o conteúdo. Tente de novo.",
+    };
+  }
+  if (/ENOTFOUND|EAI_AGAIN|ECONNREFUSED|ECONNRESET|ETIMEDOUT|tempo esgotado/i.test(msg)) {
+    return {
+      titulo: "Sem conexão com a internet",
+      texto:
+        "Não foi possível alcançar o servidor para baixar os componentes da primeira " +
+        "execução.\n\nVerifique a conexão e tente de novo. O que já foi baixado é " +
+        "aproveitado, o download continua de onde parou.",
+    };
+  }
+  if (/ENOSPC|espaço|espaco/i.test(msg)) {
+    return {
+      titulo: "Espaço insuficiente em disco",
+      texto:
+        "A instalação precisa de cerca de 6 GB livres: 1,3 GB de componentes e 2,1 GB " +
+        "de modelos, mais espaço temporário.\n\nLibere espaço e tente de novo.",
+    };
+  }
+  return {
+    titulo: "Não foi possível iniciar",
+    texto: msg,
+  };
+}
+
 // --- Ciclo de vida ----------------------------------------------------------
 
 // Duas instancias significariam dois backends, dois modelos na RAM e briga de
@@ -345,12 +409,23 @@ if (!app.requestSingleInstanceLock()) {
         log("FALHA ao carregar a interface:", code, desc),
       );
     } catch (err) {
-      dialog.showErrorBox(
-        "Não foi possível iniciar",
-        `${err && err.message ? err.message : err}\n\n` +
-          "Se esta é a primeira execução, o download dos modelos pode ter sido interrompido.",
-      );
       killBackend();
+      const { titulo, texto } = explicarFalha(err);
+      const r = await dialog.showMessageBox({
+        type: "error",
+        title: "Xdiag Privacy",
+        message: titulo,
+        detail: texto,
+        buttons: ["Tentar de novo", "Fechar"],
+        defaultId: 0,
+        cancelId: 1,
+        noLink: true,
+      });
+      if (r.response === 0) {
+        // O download parcial fica no disco, entao a nova tentativa continua de
+        // onde parou em vez de recomecar os 406 MB.
+        app.relaunch();
+      }
       app.quit();
     }
   });
