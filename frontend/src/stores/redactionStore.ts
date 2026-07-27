@@ -60,13 +60,24 @@ function looksSynthetic(name: string): boolean {
 
 function sortByPosition(entities: Entity[]): Entity[] {
   return [...entities].sort((a, b) => {
-    const ay = a.bboxes[0]?.[0]?.[1] ?? 0;
-    const by = b.bboxes[0]?.[0]?.[1] ?? 0;
+    // Entidades sem bbox vao para o FIM da lista; a animacao percorre so
+    // as mapeadas e a secao "nao mapeadas" da UI as exibe em separado.
+    const ay = a.unmapped ? Infinity : a.bboxes[0]?.[0]?.[1] ?? 0;
+    const by = b.unmapped ? Infinity : b.bboxes[0]?.[0]?.[1] ?? 0;
+    if (ay === Infinity && by === Infinity) return 0;
     if (Math.abs(ay - by) > 6) return ay - by;
     const ax = a.bboxes[0]?.[0]?.[0] ?? 0;
     const bx = b.bboxes[0]?.[0]?.[0] ?? 0;
     return ax - bx;
   });
+}
+
+export function mappedCount(entities: Entity[]): number {
+  return entities.filter((e) => !e.unmapped).length;
+}
+
+export function unmappedCount(entities: Entity[]): number {
+  return entities.filter((e) => e.unmapped).length;
 }
 
 const initial = {
@@ -167,7 +178,7 @@ export const useRedactionStore = create<RedactionState>((set, get) => ({
 
   bumpVisible: () => {
     const { visibleCount, entities } = get();
-    const next = Math.min(visibleCount + 1, entities.length);
+    const next = Math.min(visibleCount + 1, mappedCount(entities));
     const currentLabel = next > 0 ? entities[next - 1].label : null;
     set({ visibleCount: next, currentLabel });
   },

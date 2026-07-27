@@ -171,7 +171,11 @@ def create_app() -> FastAPI:
             ocr_blocks=ocr_blocks,
             entities=entities,
             deidentified_text=deident,
-            stats=Stats(total_entities=len(entities), by_label=stats_by_label(entities)),
+            stats=Stats(
+                total_entities=len(entities),
+                by_label=stats_by_label(entities),
+                unmapped=sum(1 for e in entities if e.unmapped),
+            ),
             is_synthetic=is_synthetic,
             original_text=ocr_result.text if reveal else None,
             elapsed_ms=elapsed,

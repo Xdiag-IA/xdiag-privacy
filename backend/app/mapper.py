@@ -74,10 +74,10 @@ def build_entities(
     out: list[Entity] = []
     for e in pii:
         bboxes = span_to_bboxes((e.start, e.end), lines)
-        if not bboxes:
-            # entity exists in text but mapped to no visible region; skip,
-            # since the frontend has no way to render it.
-            continue
+        # Entidade sem regiao mapeada NUNCA e descartada: descartar aqui e
+        # fail-open (o texto mostra [CPF] mas a imagem exportada mostra o
+        # CPF). Ela segue na resposta com unmapped=True e o frontend bloqueia
+        # o export ate o usuario resolver.
         out.append(
             Entity(
                 label=e.label,
@@ -86,6 +86,7 @@ def build_entities(
                 char_span=(e.start, e.end),
                 bboxes=bboxes,
                 redacted=label_placeholder(e.label),
+                unmapped=not bboxes,
             )
         )
     return out

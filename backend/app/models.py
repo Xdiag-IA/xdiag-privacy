@@ -41,11 +41,19 @@ class Entity(BaseModel):
     char_span: tuple[int, int]
     bboxes: list[BBox]
     redacted: str
+    unmapped: bool = Field(
+        default=False,
+        description=(
+            "True when the span exists in the text but no image region could "
+            "be mapped. The frontend must block export until resolved."
+        ),
+    )
 
 
 class Stats(BaseModel):
     total_entities: int
     by_label: dict[str, int]
+    unmapped: int = 0
 
 
 class RedactResponse(BaseModel):

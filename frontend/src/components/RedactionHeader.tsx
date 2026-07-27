@@ -7,7 +7,7 @@ import {
   Text,
   Tooltip,
 } from "@chakra-ui/react";
-import { useRedactionStore } from "../stores/redactionStore";
+import { mappedCount, unmappedCount, useRedactionStore } from "../stores/redactionStore";
 import { labelColor, labelFriendly } from "../labels";
 
 function FileIcon() {
@@ -28,7 +28,8 @@ export function RedactionHeader() {
   const status = useRedactionStore((s) => s.status);
   const isSynthetic = useRedactionStore((s) => s.isSynthetic);
 
-  const total = entities.length;
+  const total = mappedCount(entities);
+  const unmapped = unmappedCount(entities);
 
   return (
     <Box
@@ -85,6 +86,14 @@ export function RedactionHeader() {
             {visible} / {total} redacted
           </TagLabel>
         </Tag>
+
+        {unmapped > 0 && (
+          <Tag size="md" colorScheme="red" variant="solid" borderRadius="full">
+            <TagLabel fontSize="sm">
+              {unmapped} nao {unmapped === 1 ? "mapeada" : "mapeadas"}
+            </TagLabel>
+          </Tag>
+        )}
 
         {currentLabel ? (
           <Tag

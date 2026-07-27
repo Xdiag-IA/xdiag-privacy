@@ -14,7 +14,7 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { useCallback, useState } from "react";
-import { useRedactionStore } from "../stores/redactionStore";
+import { unmappedCount, useRedactionStore } from "../stores/redactionStore";
 
 export function ControlsPanel() {
   const toast = useToast();
@@ -105,7 +105,15 @@ export function ControlsPanel() {
     triggerDownload(blob, replaceExt(fileName, "anonimizado.txt"));
   }, [deidentifiedText, fileName]);
 
-  const exportsDisabled = status !== "done" && status !== "animating";
+  // Bloqueio fail-closed: com qualquer entidade sem regiao mapeada, o
+  // arquivo exportado exporia o dado; o export fica travado ate resolver.
+  const unmapped = unmappedCount(entities);
+  const exportsDisabled =
+    (status !== "done" && status !== "animating") || unmapped > 0;
+  const unmappedHint =
+    unmapped > 0
+      ? `Existem ${unmapped} entidades sem area mapeada na imagem. Revise-as antes de exportar.`
+      : null;
 
   return (
     <Box px={5} py={4}>
@@ -177,7 +185,10 @@ export function ControlsPanel() {
             Exportar
           </Text>
           <HStack>
-            <Tooltip label="PNG com regioes preenchidas em preto" hasArrow>
+            <Tooltip
+              label={unmappedHint ?? "PNG com regioes preenchidas em preto"}
+              hasArrow
+            >
               <Button
                 size="sm"
                 onClick={exportImage}
@@ -186,7 +197,10 @@ export function ControlsPanel() {
                 Imagem anonimizada
               </Button>
             </Tooltip>
-            <Tooltip label="TXT com placeholders por entidade" hasArrow>
+            <Tooltip
+              label={unmappedHint ?? "TXT com placeholders por entidade"}
+              hasArrow
+            >
               <Button
                 size="sm"
                 variant="outline"

@@ -24,11 +24,51 @@ interface Group {
 function groupByLabel(entities: Entity[]): Group[] {
   const map = new Map<string, Group>();
   entities.forEach((e, idx) => {
+    if (e.unmapped) return; // exibidas na secao dedicada acima dos grupos
     const key = e.label.toUpperCase();
     if (!map.has(key)) map.set(key, { label: key, items: [] });
     map.get(key)!.items.push({ entity: e, index: idx });
   });
   return [...map.values()].sort((a, b) => b.items.length - a.items.length);
+}
+
+function UnmappedSection({ items }: { items: { entity: Entity; index: number }[] }) {
+  const showOriginal = useRedactionStore((s) => s.showOriginalText);
+  if (!items.length) return null;
+  return (
+    <Box
+      mx={2}
+      mt={2}
+      p={3}
+      borderRadius="8px"
+      border="1px dashed"
+      borderColor="red.500"
+      bg="rgba(220, 38, 38, 0.08)"
+    >
+      <HStack mb={2} justify="space-between">
+        <Text fontSize="sm" fontWeight={700} color="red.300">
+          Nao mapeadas
+        </Text>
+        <Tag size="sm" colorScheme="red" borderRadius="full">
+          <TagLabel fontFamily="mono" fontSize="xs">
+            {items.length}
+          </TagLabel>
+        </Tag>
+      </HStack>
+      <Stack spacing={1.5}>
+        {items.map(({ entity, index }) => (
+          <Box key={`unmapped-${index}`} px={2} py={1.5} borderRadius="6px" bg="slate.900">
+            <Text fontSize="sm" fontFamily="mono" color="slate.100" noOfLines={1}>
+              {showOriginal ? entity.text : maskText(entity.text)}
+            </Text>
+            <Text fontSize="xs" color="red.300" mt={0.5}>
+              {labelFriendly(entity.label)}: sem regiao na imagem, sera exposta no export
+            </Text>
+          </Box>
+        ))}
+      </Stack>
+    </Box>
+  );
 }
 
 export function EntityList() {
@@ -41,6 +81,13 @@ export function EntityList() {
   const selectedIndex = useRedactionStore((s) => s.selectedEntityIndex);
 
   const groups = useMemo(() => groupByLabel(entities), [entities]);
+  const unmappedItems = useMemo(
+    () =>
+      entities
+        .map((entity, index) => ({ entity, index }))
+        .filter((x) => x.entity.unmapped),
+    [entities],
+  );
 
   if (!entities.length) {
     return (
@@ -55,6 +102,8 @@ export function EntityList() {
   );
 
   return (
+    <>
+    <UnmappedSection items={unmappedItems} />
     <Accordion allowMultiple defaultIndex={groups.map((_, i) => i)} px={2} pt={2}>
       {groups.map((g) => {
         const color = labelColor(g.label);
@@ -134,5 +183,6 @@ export function EntityList() {
         );
       })}
     </Accordion>
+    </>
   );
 }

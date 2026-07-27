@@ -24,11 +24,14 @@ export interface Entity {
   char_span: [number, number];
   bboxes: BBox[];
   redacted: string;
+  // Detectada no texto mas sem regiao na imagem; bloqueia o export.
+  unmapped: boolean;
 }
 
 export interface Stats {
   total_entities: number;
   by_label: Record<string, number>;
+  unmapped: number;
 }
 
 export interface RedactResponse {
