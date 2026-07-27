@@ -1,0 +1,64 @@
+name: Erro de funcionamento
+description: Alguma coisa quebrou, travou, não subiu ou não exportou.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Para problema de detecção (dado que passou sem tarja), use o outro
+        modelo de issue.
+
+        Ao colar log ou mensagem de erro, **apague antes qualquer nome de
+        arquivo, caminho ou trecho de texto que venha de documento real.**
+
+  - type: checkboxes
+    id: sem-dado-real
+    attributes:
+      label: Confirmação obrigatória
+      options:
+        - label: Confirmo que não vou anexar documento, print, texto ou log com dado de paciente real, nem aqui nem nos comentários.
+          required: true
+
+  - type: textarea
+    id: descricao
+    attributes:
+      label: O que aconteceu
+    validations:
+      required: true
+
+  - type: textarea
+    id: passos
+    attributes:
+      label: Como reproduzir
+      placeholder: |
+        1. Subi com docker compose up
+        2. Arrastei um PDF de 3 páginas
+        3. Cliquei em exportar texto
+        4. Nada aconteceu
+    validations:
+      required: true
+
+  - type: textarea
+    id: esperado
+    attributes:
+      label: O que você esperava
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Mensagem de erro ou log
+      description: Do console do navegador, ou de `docker compose logs api`. Limpe os dados reais antes de colar.
+      render: shell
+
+  - type: textarea
+    id: ambiente
+    attributes:
+      label: Ambiente
+      placeholder: |
+        Docker compose, commit c8cb04a, Windows 11, 16 GB RAM, CPU
+        Navegador: Chrome 141
+    validations:
+      required: true

@@ -402,10 +402,21 @@ Para acrescentar um rótulo novo, mexa nos dois lados: `LABEL_PLACEHOLDER` e
 
 ## Contribuindo
 
+Leia o [CONTRIBUTING.md](CONTRIBUTING.md) antes da primeira contribuição.
+
+> ### 🚫 Nunca envie dado de paciente real
+>
+> Não em issue, não em pull request, não em anexo, não em print, não em log
+> colado, não em nome de arquivo. Um documento publicado numa issue é público
+> para sempre: fica em cache de busca, em espelhos do repositório e no e-mail
+> de todo mundo que acompanha o projeto. Apagar depois não resolve.
+>
+> Gere um equivalente sintético com `python scripts/generate_samples.py`.
+
 Contribuição é bem-vinda, especialmente:
 
-- documentos brasileiros que a ferramenta erra (**sem dado real**, por favor:
-  gere um sintético equivalente)
+- documentos brasileiros que a ferramenta erra (falso negativo é o bug mais
+  valioso deste projeto)
 - padrões e validadores de identificadores que faltam
 - melhorias de recall no corpus
 
@@ -413,7 +424,12 @@ Antes de abrir um PR, rode o avaliador de recall antes e depois da sua
 mudança. PR que piora o recall de qualquer rótulo não entra, mesmo que melhore
 outra coisa.
 
-**Nunca abra issue com documento de paciente real, nem em print.**
+### Achou uma falha de segurança?
+
+Se você conseguiu recuperar dado de um arquivo que a ferramenta declarou
+anonimizado, **não abra issue pública**: o exemplo que demonstra a falha é,
+por definição, um documento com dado exposto. Veja o
+[SECURITY.md](SECURITY.md) para o canal privado.
 
 ## Licença e créditos
 

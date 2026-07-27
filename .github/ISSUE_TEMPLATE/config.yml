@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Encontrou uma falha de segurança ou vazamento
+    url: https://github.com/Xdiag-IA/xdiag-privacy/security/advisories/new
+    about: Dado recuperável de arquivo já anonimizado. NÃO abra issue pública, use o canal privado.
+  - name: Como contribuir
+    url: https://github.com/Xdiag-IA/xdiag-privacy/blob/main/CONTRIBUTING.md
+    about: Leia antes de abrir a primeira issue, principalmente a parte sobre nunca enviar dado real.
+  - name: Sobre a Xdiag
+    url: https://www.xdiag.com.br
+    about: A empresa por trás do projeto.

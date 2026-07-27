@@ -1,0 +1,44 @@
+name: Sugestão
+description: Uma ideia, um identificador brasileiro que falta, uma melhoria de uso.
+title: "[sugestão] "
+labels: ["sugestao"]
+body:
+  - type: checkboxes
+    id: sem-dado-real
+    attributes:
+      label: Confirmação obrigatória
+      options:
+        - label: Confirmo que não vou anexar documento, print, texto ou log com dado de paciente real, nem aqui nem nos comentários.
+          required: true
+
+  - type: textarea
+    id: problema
+    attributes:
+      label: Qual problema isso resolve
+      description: Comece pelo problema, não pela solução. Ajuda a encontrar caminhos que você talvez não tenha considerado.
+      placeholder: |
+        Trabalho com guias de convênio e preciso tarjar dezenas por vez.
+        Hoje preciso conferir uma a uma antes de exportar.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposta
+    attributes:
+      label: O que você imaginou
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área
+      options:
+        - Detecção, um identificador brasileiro que falta
+        - Interface e uso
+        - Export e formatos
+        - Instalação e empacotamento
+        - Desempenho
+        - Outra
+    validations:
+      required: true

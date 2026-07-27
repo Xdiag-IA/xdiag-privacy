@@ -1,0 +1,86 @@
+name: Dado que passou sem tarja, ou tarja no lugar errado
+description: A ferramenta deixou um dado pessoal exposto, ou tarjou algo que não era dado pessoal.
+title: "[detecção] "
+labels: ["deteccao"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Este é o tipo de relato mais valioso do projeto. Obrigado.
+
+        **Antes de continuar:** o documento que demonstra o problema tem dado
+        exposto por definição. Não anexe o original. Gere um sintético
+        equivalente com `python scripts/generate_samples.py`, ou monte um
+        documento com dados fictícios que tenha o mesmo layout e o mesmo tipo
+        de campo do original.
+
+  - type: checkboxes
+    id: sem-dado-real
+    attributes:
+      label: Confirmação obrigatória
+      options:
+        - label: Confirmo que não vou anexar documento, print, texto ou log com dado de paciente real, nem aqui nem nos comentários.
+          required: true
+
+  - type: dropdown
+    id: tipo-erro
+    attributes:
+      label: O que aconteceu
+      options:
+        - Dado pessoal ficou exposto (falso negativo)
+        - Tarjou algo que não era dado pessoal (falso positivo)
+        - A tarja saiu deslocada ou do tamanho errado
+    validations:
+      required: true
+
+  - type: input
+    id: tipo-documento
+    attributes:
+      label: Tipo de documento
+      description: Laudo, guia TISS, etiqueta, receita, ficha, resultado de laboratório...
+      placeholder: guia TISS de SP/SADT
+    validations:
+      required: true
+
+  - type: input
+    id: rotulo
+    attributes:
+      label: Qual dado
+      description: CPF, CNS, nome de paciente, CRM, prontuário, endereço...
+      placeholder: CNS
+    validations:
+      required: true
+
+  - type: textarea
+    id: descricao
+    attributes:
+      label: O que era esperado e o que aconteceu
+      description: Descreva onde o dado aparecia no documento e como ele estava escrito (formato, com ou sem pontuação, na mesma linha do rótulo ou não).
+      placeholder: |
+        O CNS aparecia no cabeçalho, escrito como "CNS 704 0012 3456 7890",
+        separado em blocos de quatro e sem o rótulo colado no número.
+        Esperava que fosse tarjado, mas passou.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproducao
+    attributes:
+      label: Documento sintético que reproduz
+      description: Anexe aqui o documento fictício, ou descreva a estrutura se preferir não anexar. Arraste o arquivo para esta caixa.
+    validations:
+      required: true
+
+  - type: input
+    id: threshold
+    attributes:
+      label: Limite de confiança usado
+      placeholder: "0.50"
+
+  - type: textarea
+    id: ambiente
+    attributes:
+      label: Ambiente
+      description: Como está rodando e em qual versão.
+      placeholder: |
+        Docker compose, commit c8cb04a, Windows 11, CPU
