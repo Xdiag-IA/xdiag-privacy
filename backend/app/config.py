@@ -62,6 +62,9 @@ class Settings:
 
     # Pipeline
     confidence_default: float = 0.5
+    # Piso de coleta do modelo: tudo acima disso entra no pipeline e passa
+    # por snap e validacao ANTES do corte pelo threshold do usuario.
+    pii_score_floor: float = 0.15
     max_upload_bytes: int = 20 * 1024 * 1024  # 20MB
 
     # Storage
@@ -101,6 +104,7 @@ class Settings:
             pii_aggregation=os.getenv("XDIAG_PII_AGGREGATION", "simple"),
             pii_max_input_chars=_int(os.getenv("XDIAG_PII_MAX_CHARS"), 8000),
             confidence_default=_float(os.getenv("XDIAG_CONFIDENCE"), 0.5),
+            pii_score_floor=_float(os.getenv("XDIAG_PII_SCORE_FLOOR"), 0.15),
             max_upload_bytes=_int(os.getenv("XDIAG_MAX_UPLOAD"), 20 * 1024 * 1024),
             samples_dir=Path(os.getenv("XDIAG_SAMPLES_DIR", "/app/samples")),
             cache_dir=Path(os.getenv("XDIAG_CACHE_DIR", "/app/.cache")),

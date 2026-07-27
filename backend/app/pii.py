@@ -14,11 +14,13 @@ from __future__ import annotations
 
 import logging
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from threading import Lock
 from typing import Any
 
+from . import patterns
 from .config import Settings, get_settings
+from .patterns import cnpj_is_valid, cns_is_valid, cpf_is_valid  # noqa: F401  reexport
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +32,13 @@ class PIIEntity:
     score: float
     start: int
     end: int
+    # Metadados internos do pipeline (nao expostos no contrato da API):
+    # origin: "model" | "regex" | "mock"; validated: digito verificador
+    # aprovado (bypass permanente de threshold); strong: snap com evidencia
+    # real (formatacao, keyword ou validador).
+    origin: str = "model"
+    validated: bool = False
+    strong: bool = False
 
 
 # Maps the raw label emitted by the model to a canonical normalized label.
@@ -67,6 +76,11 @@ LABEL_REMAP: dict[str, str] = {
     "ACCOUNTNUMBER": "ID",
     "ACCOUNTNAME": "ID",
     "CREDITCARDNUMBER": "ID",
+    # O modelo usa CREDITCARD/BANKACCOUNT para fragmentos de identificadores
+    # numericos longos (CNS, carteirinha); remapear para ID permite o snap
+    # de sequencia de digitos reancorar o span completo.
+    "CREDITCARD": "ID",
+    "BANKACCOUNT": "ID",
     "USERAGENT": "ID",
     "URL": "URL",
     "IP": "IP",
@@ -213,46 +227,10 @@ def supported_labels() -> list[tuple[str, str, str]]:
     return [(k, v[0], v[1]) for k, v in seen.items()]
 
 
-# --- Brazilian validators ---------------------------------------------------
+# Validadores de CPF/CNPJ/CNS vivem em patterns.py e sao reexportados acima
+# para manter os nomes publicos existentes deste modulo.
 
-
-_DIGITS_RE = re.compile(r"\D+")
-
-
-def _digits(s: str) -> str:
-    return _DIGITS_RE.sub("", s)
-
-
-def cpf_is_valid(value: str) -> bool:
-    """Validate a Brazilian CPF using the standard mod 11 check digits."""
-    d = _digits(value)
-    if len(d) != 11 or len(set(d)) == 1:
-        return False
-    nums = [int(c) for c in d]
-
-    def check(n: int) -> int:
-        s = sum((n + 1 - i) * nums[i] for i in range(n))
-        r = (s * 10) % 11
-        return 0 if r == 10 else r
-
-    return check(9) == nums[9] and check(10) == nums[10]
-
-
-def cnpj_is_valid(value: str) -> bool:
-    """Validate a Brazilian CNPJ using the standard mod 11 check digits."""
-    d = _digits(value)
-    if len(d) != 14 or len(set(d)) == 1:
-        return False
-    nums = [int(c) for c in d]
-    weights1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
-    weights2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
-
-    def check(weights: list[int], length: int) -> int:
-        s = sum(nums[i] * weights[i] for i in range(length))
-        r = s % 11
-        return 0 if r < 2 else 11 - r
-
-    return check(weights1, 12) == nums[12] and check(weights2, 13) == nums[13]
+_digits = patterns.digits
 
 
 # --- Engine -----------------------------------------------------------------
@@ -329,19 +307,22 @@ class PIIEngine:
             self.warmup()
         assert self._pipe is not None
 
-        # Naive chunking for very long pages: split on the last newline before
-        # the chunk size limit so we never break a token.
+        # Coleta com piso baixo, NAO com o threshold do usuario: o corte por
+        # confianca acontece no fim do pipeline, depois de snap e validacao.
+        # Um fragmento a 0.2 pode virar um CPF valido apos o snap; corta-lo
+        # aqui seria fail-open.
+        floor = self.settings.pii_score_floor
         chunks = self._chunk_text(text, self.settings.pii_max_input_chars)
-        all_entities: list[PIIEntity] = []
+        model_entities: list[PIIEntity] = []
         for offset, chunk in chunks:
             with self._lock:
                 results = self._pipe(chunk)
             for r in results or []:
                 ent = self._normalize_hf_entity(r, offset)
-                if ent is None or ent.score < threshold:
+                if ent is None or ent.score < floor:
                     continue
-                all_entities.append(ent)
-        return self._post_filter(all_entities, text)
+                model_entities.append(ent)
+        return self._pipeline(model_entities, text, threshold)
 
     @staticmethod
     def _chunk_text(text: str, max_chars: int) -> list[tuple[int, str]]:
@@ -385,153 +366,148 @@ class PIIEngine:
         return PIIEntity(label=label, text=text, score=score, start=start, end=end)
 
     @staticmethod
-    def _post_filter(entities: list[PIIEntity], text: str) -> list[PIIEntity]:
-        """Pipeline:
-        1. Snap each entity to known syntactic patterns (CPF, CNPJ, EMAIL,
-           PHONE, ZIP, DATE, CRM) to recover from token level fragmentation.
-        2. Re slice text to the actual span, drop too short fragments.
-        3. Sort, merge adjacent same label spans across simple punctuation.
-        4. Validate CPF/CNPJ via Luhn; promote BR_DOC accordingly.
-        5. Drop entities fully contained within larger entities (the model
-           sometimes tags PERSON inside an email, which we want to suppress).
-        """
-        if not entities:
-            return []
+    def _pipeline(
+        model_entities: list[PIIEntity], text: str, threshold: float
+    ) -> list[PIIEntity]:
+        """Pipeline fail-closed, na ordem:
 
-        snapped = [_snap_to_pattern(text, e) for e in entities if e.end > e.start]
+        1. varredura regex-first do texto completo (independe do modelo);
+        2. snap dos spans do modelo aos padroes do registro (strong/weak);
+        3. re-slice do texto real e descarte de fragmentos curtos;
+        4. dedup de spans identicos (modelo + regex acham o mesmo CPF);
+        5. validacao de digito verificador (seta validated, promove BR_DOC);
+        6. merge estrutural ANTES do threshold (fragmento fraco de nome pega
+           carona no vizinho forte via score max);
+        7. threshold: so poda deteccao de modelo sem validacao e sem snap
+           forte; entidade validada sobrevive SEMPRE, em qualquer score;
+        8. containment e disjuncao final (spans estritamente disjuntos).
+        """
+        regex_entities = patterns.scan_text(text)
+
+        snapped: list[PIIEntity] = []
+        for e in model_entities:
+            if e.end <= e.start:
+                continue
+            se, strong = patterns.snap_to_spec(text, e)
+            snapped.append(replace(se, strong=strong or se.strong))
 
         cleaned: list[PIIEntity] = []
-        for e in snapped:
+        for e in snapped + regex_entities:
             slice_text = text[e.start : e.end]
             inner = slice_text.strip(".,-/:;()[]_ \t\n")
-            alnum = sum(1 for c in inner if c.isalnum())
-            if alnum < 2:
+            if sum(1 for c in inner if c.isalnum()) < 2:
                 continue
-            cleaned.append(
-                PIIEntity(
-                    label=e.label,
-                    text=slice_text,
-                    score=e.score,
-                    start=e.start,
-                    end=e.end,
-                )
-            )
+            cleaned.append(replace(e, text=slice_text))
 
-        cleaned.sort(key=lambda x: (x.start, -(x.end - x.start)))
+        deduped = patterns.dedupe_exact(cleaned)
+        validated = PIIEngine._validate(deduped)
+        merged = PIIEngine._merge_adjacent(validated, text)
 
-        merged: list[PIIEntity] = []
-        for e in cleaned:
-            if merged:
-                last = merged[-1]
-                same = e.label == last.label
-                if same and e.start <= last.end:
-                    ne = max(last.end, e.end)
-                    merged[-1] = PIIEntity(
-                        label=last.label,
-                        text=text[last.start : ne],
-                        score=max(last.score, e.score),
-                        start=last.start,
-                        end=ne,
-                    )
-                    continue
-                between = text[last.end : e.start]
-                gap_punct_only = bool(between) and all(
-                    c.isspace() or c in ".,-/:;()[]_" for c in between
-                )
-                # PERSON spans benefit from a wider, name aware merge: the
-                # model often splits a full name across the FIRSTNAME and
-                # LASTNAME tags with letters in between (e.g. 'Maria',
-                # 'cida Pereira', 'Silva' for 'Maria Aparecida Pereira da
-                # Silva'). Merge if the gap is purely Latin letters and
-                # spaces and short enough that a newline would have broken
-                # it on a real document.
-                gap_is_name_filler = (
-                    bool(between)
-                    and "\n" not in between
-                    and all(c.isalpha() or c.isspace() for c in between)
-                )
-                if same and (
-                    (len(between) <= 3 and gap_punct_only)
-                    or (e.label == "PERSON" and len(between) <= 12 and gap_is_name_filler)
-                ):
-                    ne = max(last.end, e.end)
-                    merged[-1] = PIIEntity(
-                        label=last.label,
-                        text=text[last.start : ne],
-                        score=max(last.score, e.score),
-                        start=last.start,
-                        end=ne,
-                    )
-                    continue
-            merged.append(e)
+        kept = [
+            e
+            for e in merged
+            if e.validated
+            or e.origin in ("regex", "mock")
+            or e.strong
+            or e.score >= threshold
+        ]
+        return patterns.finalize_disjoint(kept, text)
 
-        validated: list[PIIEntity] = []
-        for e in merged:
+    @staticmethod
+    def _validate(entities: list[PIIEntity]) -> list[PIIEntity]:
+        """Digito verificador: promove BR_DOC e marca validated.
+
+        Checksum reprovado NAO descarta a entidade: um CPF real com um digito
+        corrompido pelo OCR continua sendo PII na imagem. Ele apenas perde o
+        bypass (vira BR_DOC sujeito ao threshold pelo score do modelo).
+        """
+        out: list[PIIEntity] = []
+        for e in entities:
             label = e.label.upper()
             st = e.text.strip(".,-/:;()[]_ \t\n")
             if label == "BR_DOC":
                 if cpf_is_valid(st):
-                    validated.append(_replace_label(e, "BR_CPF"))
+                    out.append(replace(e, label="BR_CPF", validated=True))
                     continue
                 if cnpj_is_valid(st):
-                    validated.append(_replace_label(e, "BR_CNPJ"))
+                    out.append(replace(e, label="BR_CNPJ", validated=True))
                     continue
-                digits = sum(1 for c in st if c.isdigit())
-                if digits >= 8:
-                    validated.append(e)
+                if sum(1 for c in st if c.isdigit()) >= 8:
+                    out.append(e)
                 continue
-            if label in {"BR_CPF", "CPF"} and not cpf_is_valid(st):
+            if label in {"BR_CPF", "CPF"}:
+                if cpf_is_valid(st):
+                    out.append(replace(e, validated=True))
+                else:
+                    out.append(replace(e, label="BR_DOC"))
                 continue
-            if label in {"BR_CNPJ", "CNPJ"} and not cnpj_is_valid(st):
+            if label in {"BR_CNPJ", "CNPJ"}:
+                if cnpj_is_valid(st):
+                    out.append(replace(e, validated=True))
+                else:
+                    out.append(replace(e, label="BR_DOC"))
                 continue
-            validated.append(e)
+            if label == "CNS" and cns_is_valid(st):
+                out.append(replace(e, validated=True))
+                continue
+            out.append(e)
+        return out
 
-        # Drop entities fully contained within strictly larger ones.
-        validated.sort(key=lambda x: (x.start, -(x.end - x.start)))
-        final: list[PIIEntity] = []
-        for e in validated:
-            contained = False
-            for o in validated:
-                if (o.start, o.end) == (e.start, e.end):
+    @staticmethod
+    def _merge_adjacent(entities: list[PIIEntity], text: str) -> list[PIIEntity]:
+        """Merge de spans adjacentes de mesmo label.
+
+        Gap de ate 3 chars de pontuacao, ou ate 12 chars de letras/espacos
+        para PERSON (o modelo fatia nomes compostos). O merge preserva o
+        score maximo e os flags mais fortes dos membros.
+        """
+        entities = sorted(entities, key=lambda x: (x.start, -(x.end - x.start)))
+        merged: list[PIIEntity] = []
+        for e in entities:
+            if merged:
+                last = merged[-1]
+                same = e.label == last.label
+                fuse = False
+                if same and e.start <= last.end:
+                    fuse = True
+                elif same:
+                    between = text[last.end : e.start]
+                    gap_punct_only = bool(between) and all(
+                        c.isspace() or c in ".,-/:;()[]_" for c in between
+                    )
+                    gap_is_name_filler = (
+                        bool(between)
+                        and "\n" not in between
+                        and all(c.isalpha() or c.isspace() for c in between)
+                    )
+                    fuse = (len(between) <= 3 and gap_punct_only) or (
+                        e.label == "PERSON"
+                        and len(between) <= 12
+                        and gap_is_name_filler
+                    )
+                if fuse:
+                    ne = max(last.end, e.end)
+                    merged[-1] = replace(
+                        last,
+                        text=text[last.start : ne],
+                        score=max(last.score, e.score),
+                        end=ne,
+                        validated=last.validated or e.validated,
+                        strong=last.strong or e.strong,
+                    )
                     continue
-                if o.start <= e.start and o.end >= e.end:
-                    contained = True
-                    break
-            if not contained:
-                final.append(e)
-        return final
+            merged.append(e)
+        return merged
 
     @staticmethod
     def _mock_detect(text: str, threshold: float) -> list[PIIEntity]:
-        """Heuristic detector used in mock mode.
+        """Detector heuristico do modo mock.
 
-        We use simple regexes to find common Brazilian PII so the rest of the
-        pipeline can be smoke tested. This is NOT a substitute for the model.
+        Os padroes sintaticos vem do MESMO registro (patterns.REGISTRY) usado
+        no modo real, via _pipeline; aqui entram apenas as heuristicas de
+        nome e endereco que no modo real sao papel do modelo.
         """
-        patterns: list[tuple[str, str]] = [
-            ("BR_CPF", r"\b\d{3}\.\d{3}\.\d{3}-\d{2}\b"),
-            ("BR_CNPJ", r"\b\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}\b"),
-            ("BR_RG", r"\b\d{1,2}\.\d{3}\.\d{3}-[\dXx]\b"),
-            ("PHONE", r"\(\d{2}\)\s*\d{4,5}-\d{4}"),
-            ("EMAIL", r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"),
-            ("DATE", r"\b\d{2}/\d{2}/\d{4}\b"),
-            ("AGE", r"\b\d{1,3}\s*anos?\b"),
-            ("CRM", r"CRM[\/\-]?[A-Z]{2}\s*\d{4,7}"),
-        ]
         ents: list[PIIEntity] = []
-        for label, pat in patterns:
-            for m in re.finditer(pat, text, flags=re.IGNORECASE):
-                ents.append(
-                    PIIEntity(
-                        label=label,
-                        text=m.group(0),
-                        score=0.97,
-                        start=m.start(),
-                        end=m.end(),
-                    )
-                )
-        # Names: very rough heuristic, two or more capitalized tokens after
-        # a known prefix. Good enough for the mock path only.
         for m in re.finditer(
             r"(?:Paciente|Medico|Dr\.?|Dra\.?)[:\s]+((?:[A-ZÁÉÍÓÚÂÊÔÃÕÇ][a-záéíóúâêôãõç]+\s?){2,5})",
             text,
@@ -545,12 +521,10 @@ class PIIEngine:
                     score=0.95,
                     start=start,
                     end=start + len(grp),
+                    origin="mock",
                 )
             )
-        # Address heuristic
-        for m in re.finditer(
-            r"Endereco[:\s]+([^\n]+)", text, flags=re.IGNORECASE
-        ):
+        for m in re.finditer(r"Endereco[:\s]+([^\n]+)", text, flags=re.IGNORECASE):
             grp = m.group(1).strip()
             start = m.start(1)
             ents.append(
@@ -560,99 +534,10 @@ class PIIEngine:
                     score=0.93,
                     start=start,
                     end=start + len(grp),
+                    origin="mock",
                 )
             )
-        ents = [e for e in ents if e.score >= threshold]
-        return PIIEngine._post_filter(ents, text)
-
-
-def _replace_label(e: PIIEntity, new_label: str) -> PIIEntity:
-    return PIIEntity(label=new_label, text=e.text, score=e.score, start=e.start, end=e.end)
-
-
-# Patterns used to snap a partial model span back to its full syntactic form.
-# Each entry: (label_to_emit, regex, optional_validator).
-_CPF_RE = re.compile(r"\d{3}\.?\d{3}\.?\d{3}-?\d{2}")
-_CNPJ_RE = re.compile(r"\d{2}\.?\d{3}\.?\d{3}/?\d{4}-?\d{2}")
-_RG_RE = re.compile(r"\d{1,2}\.?\d{3}\.?\d{3}-?[\dXx]")
-_EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
-_PHONE_RE = re.compile(r"\(?\d{2}\)?\s*\d{4,5}-?\d{4}")
-_ZIP_RE = re.compile(r"\d{5}-?\d{3}")
-_DATE_RE = re.compile(r"\d{1,2}/\d{1,2}/\d{2,4}")
-_CRM_RE = re.compile(r"CRM[\s/.-]*[A-Z]{2}\s*\d{4,7}")
-
-# Per label snap window sizes (chars to look back / ahead from the model span).
-# Wider for EMAIL because addresses can stretch 25+ chars.
-_WINDOW_BY_LABEL: dict[str, tuple[int, int]] = {
-    "EMAIL": (10, 60),
-    "BR_DOC": (6, 16),
-    "BR_CPF": (6, 16),
-    "CPF": (6, 16),
-    "BR_CNPJ": (6, 18),
-    "CNPJ": (6, 18),
-    "BR_RG": (6, 16),
-    "RG": (6, 16),
-    "PHONE": (6, 18),
-    "PHONE_NUMBER": (6, 18),
-    "ZIPCODE": (4, 10),
-    "ZIP": (4, 10),
-    "DATE": (4, 12),
-    "DATE_OF_BIRTH": (4, 12),
-    "DOB": (4, 12),
-    "CRM": (6, 22),
-}
-
-
-def _snap_to_pattern(text: str, e: PIIEntity) -> PIIEntity:
-    """If e's span overlaps a syntactically complete pattern (CPF, CNPJ,
-    EMAIL, PHONE, ZIP, DATE, RG, CRM), extend the span to cover the full
-    pattern. Used to recover from token level fragmentation in the model
-    output. Window size is per label (emails can be much wider than docs).
-    """
-    label = e.label.upper()
-    back, ahead = _WINDOW_BY_LABEL.get(label, (6, 14))
-    win_start = max(0, e.start - back)
-    win_end = min(len(text), e.end + ahead)
-    window = text[win_start:win_end]
-
-    candidates: list[tuple[str, re.Pattern[str], Any]] = []
-    if label in {"BR_DOC", "BR_CPF", "CPF", "BR_CNPJ", "CNPJ", "ID"}:
-        candidates = [
-            ("BR_CNPJ", _CNPJ_RE, cnpj_is_valid),
-            ("BR_CPF", _CPF_RE, cpf_is_valid),
-            ("BR_RG", _RG_RE, None),
-        ]
-    elif label in {"BR_RG", "RG"}:
-        candidates = [("BR_RG", _RG_RE, None)]
-    elif label == "EMAIL":
-        candidates = [("EMAIL", _EMAIL_RE, None)]
-    elif label in {"PHONE", "PHONE_NUMBER"}:
-        candidates = [("PHONE", _PHONE_RE, None)]
-    elif label in {"ZIPCODE", "ZIP", "POSTAL_CODE"}:
-        candidates = [("ZIPCODE", _ZIP_RE, None)]
-    elif label in {"DATE", "DATE_OF_BIRTH", "DOB"}:
-        candidates = [(label, _DATE_RE, None)]
-    elif label == "CRM":
-        candidates = [("CRM", _CRM_RE, None)]
-    else:
-        return e
-
-    for new_label, pattern, validator in candidates:
-        for m in pattern.finditer(window):
-            cand = m.group()
-            if validator is not None and not validator(cand):
-                continue
-            ns = win_start + m.start()
-            ne = win_start + m.end()
-            if ne > e.start and ns < e.end:
-                return PIIEntity(
-                    label=new_label,
-                    text=cand,
-                    score=e.score,
-                    start=ns,
-                    end=ne,
-                )
-    return e
+        return PIIEngine._pipeline(ents, text, threshold)
 
 
 _engine_singleton: PIIEngine | None = None
