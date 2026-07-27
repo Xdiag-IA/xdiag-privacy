@@ -20,6 +20,7 @@ import {
   useRedactionStore,
 } from "../stores/redactionStore";
 import { buildFilename, getWritableOutputDir, useSettingsStore } from "../stores/settingsStore";
+import type { BBox } from "../api/types";
 
 function ImageIcon() {
   return (
@@ -155,32 +156,20 @@ export function ControlsPanel() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     ctx.drawImage(img, 0, 0, dims.w, dims.h);
-    ctx.fillStyle = "#000000";
+
+    // A tarja e escrita byte a byte, nao com ctx.fill(). Ver burnBBox: path
+    // preenchido sempre deixa borda antialiasada, e borda antialiasada guarda
+    // uma fracao do pixel original.
+    const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
     for (let i = 0; i < entities.length; i++) {
       if (excludedIndices.has(i)) continue;
-      const e = entities[i];
-      for (const bbox of e.bboxes) {
-        ctx.beginPath();
-        ctx.moveTo(bbox[0][0], bbox[0][1]);
-        ctx.lineTo(bbox[1][0], bbox[1][1]);
-        ctx.lineTo(bbox[2][0], bbox[2][1]);
-        ctx.lineTo(bbox[3][0], bbox[3][1]);
-        ctx.closePath();
-        ctx.fill();
-      }
+      for (const bbox of entities[i].bboxes) burnBBox(frame, bbox);
     }
     // Areas marcadas manualmente (falso negativo do modelo) tambem viram
     // retangulo preto solido no export, igual as detectadas automaticamente.
-    for (const box of manualBoxes) {
-      const bbox = box.bbox;
-      ctx.beginPath();
-      ctx.moveTo(bbox[0][0], bbox[0][1]);
-      ctx.lineTo(bbox[1][0], bbox[1][1]);
-      ctx.lineTo(bbox[2][0], bbox[2][1]);
-      ctx.lineTo(bbox[3][0], bbox[3][1]);
-      ctx.closePath();
-      ctx.fill();
-    }
+    for (const box of manualBoxes) burnBBox(frame, box.bbox);
+    ctx.putImageData(frame, 0, 0);
+
     canvas.toBlob((blob) => {
       if (!blob) return;
       void saveOrDownload(blob, buildFilename(filenameTemplate, baseName(fileName), "png"));
@@ -342,6 +331,43 @@ export function ControlsPanel() {
       </Stack>
     </Box>
   );
+}
+
+/**
+ * Escreve preto opaco direto nos bytes da imagem, na area coberta pela bbox.
+ *
+ * Por que nao usar ctx.fill() com um path: o canvas rasteriza path com
+ * antialiasing, entao a linha de borda sai alfa-misturada, preto por cima do
+ * pixel original. Medido no export anterior, a primeira linha de uma tarja
+ * saia com luminancia media 180 em vez de 0. Numa ferramenta de anonimizacao
+ * isso e brecha: a borda retem uma fracao do que estava embaixo. Escrevendo
+ * em ImageData nao ha rasterizacao, logo nao ha mistura possivel.
+ *
+ * As coordenadas sao expandidas para FORA (floor no inicio, ceil no fim), de
+ * modo que todo pixel tocado pela bbox, mesmo parcialmente, vira preto. Para
+ * uma bbox girada o retangulo cobre um pouco mais que o quadrilatero. E a
+ * direcao fail-closed, a mesma ja adotada nas folgas bbox_pad_chars e
+ * bbox_pad_lines do backend: tarja de mais cobre um caractere vizinho, tarja
+ * de menos deixa dado exposto.
+ */
+function burnBBox(frame: ImageData, bbox: BBox): void {
+  const xs = bbox.map((p) => p[0]);
+  const ys = bbox.map((p) => p[1]);
+  const x0 = Math.max(0, Math.floor(Math.min(...xs)));
+  const y0 = Math.max(0, Math.floor(Math.min(...ys)));
+  const x1 = Math.min(frame.width, Math.ceil(Math.max(...xs)));
+  const y1 = Math.min(frame.height, Math.ceil(Math.max(...ys)));
+  const data = frame.data;
+  for (let y = y0; y < y1; y++) {
+    let i = (y * frame.width + x0) * 4;
+    for (let x = x0; x < x1; x++) {
+      data[i] = 0;
+      data[i + 1] = 0;
+      data[i + 2] = 0;
+      data[i + 3] = 255;
+      i += 4;
+    }
+  }
 }
 
 function triggerDownload(blob: Blob, filename: string): void {
