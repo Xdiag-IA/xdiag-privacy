@@ -443,3 +443,145 @@ def finalize_disjoint(entities: "list[PIIEntity]", text: str) -> "list[PIIEntity
         return e.end > e.start and sum(1 for c in inner if c.isalnum()) >= 2
 
     return sorted((e for e in result if alive(e)), key=lambda x: x.start)
+
+
+# --- Classificador fail-closed de tokens numericos ---------------------------
+
+# Keywords identificadoras (normalizadas). A MAIS PROXIMA a esquerda do
+# numero vence sobre qualquer indicio de medida (fail-closed em empate).
+IDENT_KEYWORDS: tuple[tuple[tuple[str, ...], str], ...] = (
+    (("prontuario", "pront", "registro hospitalar", "mrn"), "MEDICAL_RECORD"),
+    (("atendimento", "atend", "boletim"), "MEDICAL_RECORD"),
+    (("guia",), "TISS_GUIDE"),
+    (("senha", "autorizacao"), "TISS_AUTH"),
+    (
+        (
+            "matricula", "carteirinha", "carteira", "cartao", "beneficiario",
+            "convenio", "unimed", "bradesco", "amil", "sulamerica",
+            "sul america", "cassi", "ipasgo", "hapvida",
+        ),
+        "INSURANCE_ID",
+    ),
+    (("cns", "cartao sus", "cartao nacional de saude"), "CNS"),
+    (("cnes",), "CNES"),
+    (("rqe",), "RQE"),
+    (("crm", "cfm"), "CRM"),
+    (("coren",), "COREN"),
+    (("crbm", "crf", "cro"), "ID"),
+    (("registro", "protocolo", "pedido", "ordem de servico", "codigo"), "ID"),
+)
+
+# Keywords de medida clinica: numero precedido por uma delas e valor, nao
+# identificador. Tokens curtos exigem fronteira de palavra.
+MEASURE_KEYWORDS: tuple[str, ...] = (
+    "dbp", "ccn", "cc", "ca", "cf", "cn", "ila", "bcf", "fc", "fr", "pa",
+    "spo2", "sat", "peso", "altura", "comprimento", "diametro", "espessura",
+    "volume", "vol", "medida", "area", "imc", "percentil", "grau", "graus",
+    "ig", "idade gestacional", "hb", "ht", "hto", "vcm", "hcm", "chcm",
+    "rdw", "dose", "dosagem", "valor", "qtde", "quantidade", "frequencia",
+    "pressao", "temperatura", "saturacao", "indice",
+)
+
+# Unidades adjacentes a direita (ate 3 chars de distancia, aceita colado).
+_UNIT_RE = re.compile(
+    r"^[\s.:,]{0,3}(?:mm3|cm3|mm2|cm2|mmhg|mcg|kcal|bpm|rpm|mg/dl|g/dl|"
+    r"ng/ml|u/l|ui|ml|dl|mg|kg|ug|fl|pg|hz|db|cm|mm|graus?|semanas?|sem\b|"
+    r"dias?|min|seg|hs?\b|x\b|%|°c|oc\b|g\b|l\b|m\b|s\b)",
+    re.IGNORECASE,
+)
+_DIM_LEFT_RE = re.compile(r"x\s{0,2}$", re.IGNORECASE)
+_DECIMAL_RE = re.compile(r"\d,\d")
+_DATE_FRAG_RE = re.compile(r"^\d{1,2}/\d{1,2}(/\d{2,4})?$|^\d{1,2}/\d{4}$")
+_TIME_RE = re.compile(r"^\d{1,2}:\d{2}$")
+_CID_BODY_RE = re.compile(r"^\d{2}(\.\d)?$")
+
+# Labels que nascem do classificador numerico: merge apenas com gap zero
+# (nunca o filler de PERSON), para nao fundir uma linha de biometria em uma
+# tarja unica.
+NUMERIC_CONTEXT_LABELS: frozenset[str] = frozenset(
+    {
+        "NUMERO", "MEDICAL_RECORD", "TISS_GUIDE", "TISS_AUTH", "INSURANCE_ID",
+        "CNS", "CNES", "RQE", "COREN",
+    }
+)
+
+
+def _left_window(text: str, start: int, back: int = 40) -> str:
+    """Janela esquerda de ate `back` chars cruzando NO MAXIMO 1 quebra."""
+    lo = max(0, start - back)
+    window = text[lo:start]
+    parts = window.split("\n")
+    if len(parts) > 2:
+        window = "\n".join(parts[-2:])
+    return window
+
+
+def _right_window(text: str, end: int, ahead: int = 10) -> str:
+    """Janela direita sem cruzar quebra de linha (unidade gruda no valor)."""
+    hi = min(len(text), end + ahead)
+    window = text[end:hi]
+    return window.split("\n", 1)[0]
+
+
+def classify_numeric(text: str, e: "PIIEntity") -> "Optional[PIIEntity]":
+    """Decide o destino de um NUM_CANDIDATE que nao snapou a padrao algum.
+
+    Fail-closed: na duvida, tarja. Retorna None APENAS quando ha evidencia
+    de valor clinico (unidade, keyword de medida, virgula decimal, cadeia
+    dimensional, CID, hora) ou quando o token tem 3 digitos ou menos (unico
+    furo deliberado: nenhum identificador brasileiro relevante cabe em 3
+    digitos, e tarjar todo "grau 1" destruiria a legibilidade do laudo).
+    """
+    span_text = e.text.strip(".,-/:;()[]_ \t\n")
+    left_raw = _left_window(text, e.start)
+    left = normalize_context(left_raw)
+    right = _right_window(text, e.end)
+
+    # 1. Idade ("34 anos") vira AGE, e PII.
+    if re.match(r"^\s{0,2}anos?\b", right, re.IGNORECASE):
+        return replace(e, label="AGE", origin="numeric")
+
+    # 2. Keyword identificadora mais proxima a esquerda vence sobre tudo.
+    best: "tuple[int, str] | None" = None  # (distancia, label)
+    for keywords, label in IDENT_KEYWORDS:
+        for k in keywords:
+            idx = left.rfind(k)
+            if idx < 0:
+                continue
+            dist = len(left) - (idx + len(k))
+            if best is None or dist < best[0]:
+                best = (dist, label)
+    measure_dist: "int | None" = None
+    for k in MEASURE_KEYWORDS:
+        pat = r"\b" + re.escape(k) + r"\b" if len(k) <= 4 else re.escape(k)
+        for m in re.finditer(pat, left):
+            dist = len(left) - m.end()
+            if measure_dist is None or dist < measure_dist:
+                measure_dist = dist
+    if best is not None and (measure_dist is None or best[0] <= measure_dist):
+        label = best[1]
+        validated = label == "CNS" and cns_is_valid(span_text)
+        return replace(e, label=label, origin="numeric", validated=validated)
+
+    # 3. Evidencias de valor clinico descartam.
+    if _UNIT_RE.match(right):
+        return None
+    if measure_dist is not None:
+        return None
+    if _DECIMAL_RE.search(span_text):
+        return None
+    if _DIM_LEFT_RE.search(left_raw):
+        return None
+    if _TIME_RE.match(span_text):
+        return None
+    prev = text[e.start - 1] if e.start > 0 else ""
+    if prev.isalpha() and _CID_BODY_RE.match(span_text):
+        return None
+    if _DATE_FRAG_RE.match(span_text):
+        return replace(e, label="DATE", origin="numeric")
+
+    # 4. Fallback fail-closed por contagem de digitos.
+    n_digits = sum(1 for c in span_text if c.isdigit())
+    if n_digits >= 4:
+        return replace(e, label="NUMERO", origin="numeric")
+    return None

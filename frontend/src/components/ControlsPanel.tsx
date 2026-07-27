@@ -168,7 +168,8 @@ export function ControlsPanel() {
               <SliderThumb />
             </Slider>
             <Text fontSize="xs" color="slate.500" mt={1}>
-              Entidades com score abaixo deste valor sao descartadas.
+              Aplica-se apenas a deteccoes do modelo sem validacao. CPF, CNPJ
+              e CNS validados e numeros suspeitos sao tarjados sempre.
             </Text>
           </Box>
         </Stack>

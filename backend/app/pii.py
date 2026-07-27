@@ -109,8 +109,14 @@ LABEL_REMAP: dict[str, str] = {
     "QUANTITY": "DROP",
     "TIME": "DROP",
     "ORDINAL": "DROP",
-    "CARDINAL": "DROP",
-    "NUMBER": "DROP",
+    # NUMBER e CARDINAL NUNCA sao dropados as cegas: prontuario, numero de
+    # guia TISS e matricula de convenio saem do modelo com esses labels.
+    # Viram NUM_CANDIDATE e passam pelo classificador de contexto, que so
+    # descarta com evidencia de medida clinica (fail-closed em token
+    # numerico). Se identificadores aparecerem como QUANTITY/AMOUNT em
+    # validacao, a correcao e remapear tambem esses para NUM_CANDIDATE.
+    "CARDINAL": "NUM_CANDIDATE",
+    "NUMBER": "NUM_CANDIDATE",
     "COMPANY_NAME": "INSTITUTION",
     "COMPANYNAME": "INSTITUTION",
     "ORDINALDIRECTION": "DROP",
@@ -160,6 +166,14 @@ LABEL_PLACEHOLDER: dict[str, str] = {
     "MEDICAL_RECORD_NUMBER": "[PRONTUARIO]",
     "MRN": "[PRONTUARIO]",
     "CRM": "[CRM]",
+    "CNS": "[CNS]",
+    "CNES": "[CNES]",
+    "RQE": "[RQE]",
+    "COREN": "[COREN]",
+    "TISS_GUIDE": "[GUIA]",
+    "TISS_AUTH": "[SENHA]",
+    "INSURANCE_ID": "[CARTEIRINHA]",
+    "NUMERO": "[NUMERO]",
     "INSTITUTION": "[INSTITUICAO]",
     "HOSPITAL": "[INSTITUICAO]",
     "ORGANIZATION": "[INSTITUICAO]",
@@ -200,6 +214,14 @@ LABEL_COLOR: dict[str, str] = {
     "MEDICAL_RECORD_NUMBER": "#3730a3",
     "MRN": "#3730a3",
     "CRM": "#db2777",
+    "CNS": "#b91c1c",
+    "CNES": "#64748b",
+    "RQE": "#c026d3",
+    "COREN": "#a21caf",
+    "TISS_GUIDE": "#0e7490",
+    "TISS_AUTH": "#b45309",
+    "INSURANCE_ID": "#ca8a04",
+    "NUMERO": "#78716c",
     "INSTITUTION": "#475569",
     "HOSPITAL": "#475569",
     "ORGANIZATION": "#475569",
@@ -401,16 +423,42 @@ class PIIEngine:
 
         deduped = patterns.dedupe_exact(cleaned)
         validated = PIIEngine._validate(deduped)
-        merged = PIIEngine._merge_adjacent(validated, text)
 
-        kept = [
-            e
-            for e in merged
-            if e.validated
-            or e.origin in ("regex", "mock")
-            or e.strong
-            or e.score >= threshold
-        ]
+        # NUM_CANDIDATE que nao snapou a nenhum padrao passa pelo
+        # classificador de contexto: keyword identificadora rotula, medida
+        # clinica descarta, e o fallback sem contexto tarja como NUMERO.
+        classified: list[PIIEntity] = []
+        for e in validated:
+            if e.label != "NUM_CANDIDATE":
+                classified.append(e)
+                continue
+            ce = patterns.classify_numeric(text, e)
+            if ce is not None:
+                classified.append(ce)
+
+        merged = PIIEngine._merge_adjacent(classified, text)
+
+        kept: list[PIIEntity] = []
+        for e in merged:
+            if (
+                e.validated
+                or e.origin in ("regex", "mock", "numeric")
+                or e.strong
+                or e.score >= threshold
+            ):
+                kept.append(e)
+                continue
+            # Fail-closed em token numerico: o modelo percebeu um numero mas
+            # com score baixo (fragmentos de CNS/carteirinha/CNES costumam
+            # sair como BANKACCOUNT/CREDITCARD a 0.2). Antes de descartar,
+            # o classificador de contexto decide: keyword identificadora
+            # rotula, medida clinica descarta, sem contexto tarja NUMERO.
+            n_digits = sum(1 for c in e.text if c.isdigit())
+            n_alnum = sum(1 for c in e.text if c.isalnum())
+            if n_digits >= 4 and n_alnum > 0 and n_digits / n_alnum >= 0.6:
+                ce = patterns.classify_numeric(text, e)
+                if ce is not None:
+                    kept.append(ce)
         return patterns.finalize_disjoint(kept, text)
 
     @staticmethod
@@ -467,9 +515,15 @@ class PIIEngine:
             if merged:
                 last = merged[-1]
                 same = e.label == last.label
+                numeric_ctx = e.label in patterns.NUMERIC_CONTEXT_LABELS
                 fuse = False
                 if same and e.start <= last.end:
                     fuse = True
+                elif same and numeric_ctx:
+                    # Labels do classificador numerico so fundem com gap
+                    # zero: fundir "54" e "198" atraves da pontuacao de uma
+                    # linha de biometria tarjaria a linha inteira.
+                    fuse = False
                 elif same:
                     between = text[last.end : e.start]
                     gap_punct_only = bool(between) and all(
