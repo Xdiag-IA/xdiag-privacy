@@ -1,100 +1,334 @@
 # Xdiag Privacy
 
-Demonstrador local first de anonimizacao visual de documentos medicos
-brasileiros. Roda 100 por cento offline apos a primeira inicializacao,
-combina PaddleOCR (lang=pt) com o modelo
-`OpenMed/OpenMed-PII-Portuguese-SnowflakeMed-Large-568M-v1` para detectar
-PII (CPF, CNPJ, RG, nome, data, idade, telefone, email, endereco, CRM,
-prontuario), e rastreia visualmente o processo de redacao no estilo da
-camada de tracking visual do OpenMed.
+**Anonimização visual de documentos médicos brasileiros, rodando inteiramente na sua máquina.**
 
-> Aviso LGPD: esta ferramenta auxilia o tratamento de dados pessoais; ela
-> nao substitui DPO, encarregado, politica de privacidade nem revisao
-> juridica. O operador permanece responsavel pelo uso legitimo, retencao,
-> registro de operacoes (Art. 37 da LGPD) e descarte seguro.
+Você arrasta um laudo, uma ficha, uma receita ou uma guia TISS. A ferramenta lê
+o documento, encontra os dados pessoais, mostra cada um deles marcado sobre a
+imagem para você conferir, e exporta uma versão com os dados cobertos por tarja
+preta. Nenhum arquivo sai do computador em nenhum momento.
 
-## Quickstart
+Feito por [Xdiag Tecnologias](https://www.xdiag.com.br), empresa brasileira de
+inteligência artificial em saúde, com médicos no time.
 
-```bash
-docker compose up --build
+> ### ⚠️ Leia antes de usar
+>
+> Esta ferramenta **auxilia** o tratamento de dados pessoais sensíveis. Ela
+> **não substitui** DPO, encarregado de dados, política de privacidade nem
+> revisão jurídica. Nenhum modelo de IA acerta 100% das vezes: **sempre
+> confira o resultado antes de compartilhar qualquer documento**. O operador
+> continua responsável pelo uso legítimo, pela retenção, pelo registro de
+> operações (Art. 37 da LGPD) e pelo descarte seguro.
+
+---
+
+## Índice
+
+- [Por que ele existe](#por-que-ele-existe)
+- [Feito para o português do Brasil](#feito-para-o-português-do-brasil)
+- [O que ele detecta](#o-que-ele-detecta)
+- [Como funciona](#como-funciona)
+- [A tarja apaga o pixel, não cobre](#a-tarja-apaga-o-pixel-não-cobre)
+- [O que ele não faz](#o-que-ele-não-faz)
+- [Como rodar](#como-rodar)
+- [Provando que nada sai da máquina](#provando-que-nada-sai-da-máquina)
+- [Qualidade e regressão](#qualidade-e-regressão)
+- [Configuração](#configuração)
+- [API](#api)
+- [Estrutura do projeto](#estrutura-do-projeto)
+- [Contribuindo](#contribuindo)
+- [Licença e créditos](#licença-e-créditos)
+
+---
+
+## Por que ele existe
+
+Compartilhar um caso clínico é rotina: mandar um laudo para um colega, montar
+uma aula, publicar um artigo, alimentar um estudo, treinar um residente. Só que
+esses documentos vêm cheios de dado pessoal, e tarjar tudo à mão em dezenas de
+arquivos é o tipo de tarefa que ninguém faz direito por muito tempo.
+
+As alternativas que existem quase sempre falham em um dos três pontos:
+
+1. **Mandam o documento para a nuvem.** Prontuário de paciente saindo da
+   clínica para um servidor de terceiro é exatamente o que a LGPD trata como
+   risco, e num serviço estrangeiro vira transferência internacional de dado
+   sensível.
+2. **Não entendem documento brasileiro.** Ferramenta genérica não sabe o que é
+   CNS, CRM, RQE, guia TISS ou carteirinha de convênio, e não valida CPF nem
+   CNPJ.
+3. **Só desenham um retângulo por cima.** É o erro clássico de PDF de tribunal:
+   a tarja é uma camada, e o texto continua lá embaixo, selecionável.
+
+O Xdiag Privacy foi feito para não cair em nenhum dos três.
+
+## Feito para o português do Brasil
+
+Esta não é uma ferramenta internacional traduzida. Cada peça foi escolhida
+para o contexto brasileiro:
+
+- **OCR em português** (PaddleOCR com `lang=pt`), que lida com a acentuação e
+  com o vocabulário clínico daqui.
+- **Modelo de PII treinado em português**
+  (`OpenMed/OpenMed-PII-Portuguese-SnowflakeMed-Large-568M-v1`), não um modelo
+  em inglês adaptado.
+- **Validação real dos nossos documentos**: CPF, CNPJ e CNS passam pelo
+  dígito verificador. Número que não valida não é tratado como documento, o
+  que derruba falso positivo em número de exame e código de barras.
+- **Identificadores do sistema de saúde brasileiro**: CNS, CRM, RQE, COREN,
+  CNES, número de guia e senha de autorização TISS, carteirinha de convênio,
+  prontuário.
+- **A interface inteira em português.**
+
+## O que ele detecta
+
+| Família | Rótulos |
+| --- | --- |
+| Pessoa | nome de paciente, nome de médico ou profissional |
+| Documento oficial | CPF, CNPJ, RG, CNS |
+| Registro interno | prontuário, identificador genérico |
+| Contato | telefone, e-mail |
+| Endereço | logradouro, cidade, UF, CEP |
+| Temporal | data, data de nascimento, idade |
+| Conselho profissional | CRM, RQE, COREN |
+| Instituição | hospital, clínica, laboratório, CNES |
+| Convênio | número de guia, senha de autorização, carteirinha |
+| Rede | URL, endereço IP |
+
+Números suspeitos que não se encaixam em nenhuma categoria conhecida também
+são tarjados, por decisão de projeto: na dúvida, cobre.
+
+Faltou alguma coisa? Você pode **desenhar a tarja à mão** direto sobre o
+documento, e ela entra no arquivo exportado igual às automáticas.
+
+## Como funciona
+
+```
+documento (PNG, JPG, WEBP ou PDF)
+        │
+        ▼
+   PaddleOCR (pt)          lê o texto e guarda onde cada caractere está na imagem
+        │
+        ▼
+   modelo OpenMed          encontra os dados pessoais no texto
+        │
+        ▼
+   validadores BR          confere dígito verificador de CPF, CNPJ e CNS
+        │
+        ▼
+   mapeador                converte a posição no texto em retângulo na imagem
+        │
+        ▼
+   revisão humana          você confere cada marcação na tela
+        │
+        ▼
+   export                  PNG com os pixels apagados, ou TXT com marcadores
 ```
 
-Aguarde a primeira execucao baixar PaddleOCR e o modelo OpenMed (cerca de
-700 MB no total). Em seguida abra `http://localhost:5173` e arraste um
-documento. Para um teste imediato sem download de modelos:
+O detalhe que faz o conjunto funcionar é o **mapa de deslocamento**: o OCR não
+devolve só o texto, ele guarda a que linha da imagem cada caractere pertence.
+É isso que permite pegar um CPF encontrado na posição 142 do texto e saber
+exatamente qual retângulo cobrir na imagem, sem tokenizar nada de novo.
+
+### Falha fechada, por princípio
+
+Se uma entidade é encontrada no texto mas **não** consegue ser localizada na
+imagem, ela é marcada como não mapeada e **o export é bloqueado**. A ferramenta
+prefere não deixar você exportar a deixar você exportar um arquivo que ainda
+mostra o dado. O mesmo vale para PDF acima do limite de páginas: a API responde
+erro explícito em vez de processar só uma parte em silêncio.
+
+## A tarja apaga o pixel, não cobre
+
+Este é o ponto onde a maioria das ferramentas falha, então vale ser específico.
+
+O export **não** desenha um retângulo por cima. Ele reescreve os bytes da
+imagem: cada pixel da região tarjada passa a ser preto puro `(0, 0, 0, 255)`.
+Não existe camada, não existe "embaixo", não existe nada para recuperar.
+
+Medição feita sobre um arquivo realmente exportado, varrendo toda a área das
+tarjas incluindo as bordas:
+
+```
+22.201 pixels analisados
+     0 pixels não pretos
+     0 de luminância máxima residual
+```
+
+O perfil vertical atravessando uma tarja é um degrau exato: papel branco (255),
+tarja (0), papel branco (255), sem nenhuma linha intermediária. A implementação
+escreve direto em `ImageData` justamente para evitar o antialiasing que o
+preenchimento de contorno do canvas deixaria na borda, e as coordenadas são
+arredondadas **para fora**, de modo que qualquer pixel encostado pela detecção
+seja apagado.
+
+Dois efeitos colaterais que jogam a favor:
+
+- **O PDF perde a camada de texto.** O export é uma imagem rasterizada, então
+  o erro clássico de "texto selecionável embaixo da tarja" não é possível aqui.
+- **Os metadados morrem junto.** A imagem é reconstruída a partir dos pixels,
+  então EXIF, dados de scanner e o nome do arquivo original não sobrevivem. O
+  arquivo exportado contém apenas `IHDR`, `IDAT` e `IEND`.
+
+E o nome do arquivo também é tratado: o padrão gera um nome novo
+(`anonimizado_2026-07-27_a1b2c3.png`) em vez de reaproveitar o original, porque
+laudo de laboratório quase sempre chega nomeado com o paciente, e o nome do
+arquivo viaja junto com ele no e-mail e no WhatsApp.
+
+## O que ele não faz
+
+Ser honesto sobre os limites é parte da ferramenta:
+
+- **Não substitui a sua revisão.** Nenhum modelo acerta sempre. A tela de
+  auditoria existe justamente para você conferir antes de exportar.
+- **Não anonimiza o conteúdo clínico.** Uma combinação rara de diagnóstico,
+  data e cidade pode reidentificar alguém mesmo sem nome nem CPF. Isso é
+  julgamento humano.
+- **Documento com mais de uma página exporta só o texto por enquanto.** O
+  export de imagem multipágina ainda não está pronto e fica bloqueado de
+  propósito, em vez de exportar só a primeira página em silêncio.
+- **Não faz OCR de manuscrito.** Letra de médico à mão continua sendo letra de
+  médico à mão.
+- **Não é dispositivo médico** e não emite laudo, diagnóstico ou parecer.
+
+## Como rodar
+
+Hoje o caminho é Docker. Um instalador para Windows, sem exigir Docker, está
+em desenvolvimento (veja [`desktop/`](desktop/)).
+
+### Requisitos
+
+- Docker 24+ com Docker Compose v2
+- 8 GB de RAM
+- Cerca de 4 GB de espaço em disco para os modelos
+- Internet **apenas na primeira execução**, para baixar os modelos
+
+### Subindo
+
+```bash
+git clone https://github.com/Xdiag-IA/xdiag-privacy.git
+```
+
+```bash
+cd xdiag-privacy && docker compose up --build
+```
+
+A primeira execução baixa o PaddleOCR e o modelo OpenMed. Depois disso abra
+**http://localhost:5173** e arraste um documento.
+
+### Experimentando sem baixar modelo
+
+Para ver a interface funcionando em segundos, com detecções simuladas:
 
 ```bash
 XDIAG_MOCK=1 docker compose up --build
 ```
 
-API: `http://localhost:8800`. Documentacao OpenAPI em `/docs`.
+### Documentos de exemplo
 
-> A porta 8800 foi escolhida para evitar choque com a 8000 (comum em outras
-> ferramentas Python locais). Para mudar, ajuste o mapping em
-> `docker-compose.yml` no servico `api` e tambem o `VITE_API_BASE_URL` do
-> servico `web`.
+A pasta `samples/` traz documentos **sintéticos**, com dados fictícios, para
+você testar sem usar material de paciente. Eles aparecem na interface com uma
+marca d'água diagonal `SYNTHETIC`, para nunca serem confundidos com documento
+real.
 
-## Requisitos
+Para gerar mais:
 
-- Docker 24+ e Docker Compose v2
-- 8 GB de RAM
-- (Opcional) GPU NVIDIA com `nvidia-container-toolkit`. Para usar, ajuste
-  `XDIAG_OCR_USE_GPU=1` e `XDIAG_PII_DEVICE=0` no `docker-compose.yml`,
-  acrescente `runtime: nvidia` ao servico `api` e troque a base do
-  Dockerfile para `nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04`.
-
-## Estrutura do projeto
-
-```
-xdiag-redact/
-  backend/
-    app/
-      main.py        FastAPI, CORS, static samples
-      ocr.py         wrapper PaddleOCR + offset map
-      pii.py         wrapper OpenMed + validadores BR (Luhn CPF/CNPJ)
-      mapper.py      conversao de spans PII em bboxes da imagem
-      models.py      schemas Pydantic
-      config.py      configuracao via env
-    requirements.txt
-    Dockerfile
-  frontend/
-    src/
-      App.tsx
-      main.tsx
-      theme/
-      api/             cliente axios + tipos
-      stores/          Zustand
-      components/      AppHeader, UploadZone, DocumentViewer,
-                       RedactionHeader, EntityList, ControlsPanel,
-                       ProgressTracker
-    package.json
-    Dockerfile
-  samples/             documentos sinteticos PNG de demonstracao
-  tests/
-    corpus/            17 PNGs + 1 PDF sinteticos com gabarito JSON
-    baselines/         baselines de recall versionados (evaluate.py)
-  scripts/
-    generate_samples.py  gera corpus com gabarito e samples de demo
-    evaluate.py          mede recall/precisao por label contra o corpus
-    smoke_test.py        roda OCR+PII+mapper em mock mode
-  docker-compose.yml
-  README.md
+```bash
+python scripts/generate_samples.py
 ```
 
-## Endpoints
+## Provando que nada sai da máquina
 
-- `GET /api/health` status do servico, modelos, dispositivo, modo mock
-- `GET /api/labels` rotulos suportados com cor hexadecimal e placeholder
-- `POST /api/redact` recebe `multipart/form-data` com `file`. Aceita as
-  query params:
-  - `reveal=true` retorna `original_text` no payload (uso administrativo)
-  - `threshold=0.5` filtra entidades com score abaixo do limite
-  - `is_synthetic=true` marca o arquivo como sintetico (apenas metadado,
-    o frontend usa para renderizar a marca dagua)
+A promessa de rodar offline não deveria ser aceita na base da confiança. Depois
+da primeira execução, com os modelos já em cache, suba o sistema e observe o
+tráfego de rede do container:
 
-Resposta (uma entrada em `pages` por pagina do documento; PDFs sao
-processados por inteiro, ate `XDIAG_MAX_PDF_PAGES` paginas, acima disso a
-API retorna 422 explicito, nunca processa parcialmente em silencio):
+```bash
+docker compose up -d
+```
+
+```bash
+docker run --rm --net=container:xdiag-privacy-api nicolaka/netshoot tcpdump -nn -i any not port 8000
+```
+
+Faça vários uploads pela interface. O `tcpdump` deve permanecer em silêncio.
+
+## Qualidade e regressão
+
+O diretório `tests/corpus/` contém 18 documentos sintéticos (17 PNG e 1 PDF)
+com gabarito em JSON: quais trechos **devem** ser tarjados, quais são
+opcionais, e quais regiões não são texto (código de barras, QR, assinatura,
+faixa de ultrassom).
+
+**Política do projeto: falso negativo é falha crítica, falso positivo é ruído
+aceitável.** O avaliador lista os falsos negativos primeiro, antes de qualquer
+outra métrica.
+
+```bash
+docker compose run --rm eval --level text
+```
+
+```bash
+docker compose run --rm eval --level full
+```
+
+`--level text` injeta o texto do gabarito direto no detector, isolando a
+detecção de PII. `--level full` roda o caminho completo, de imagem a tarja, e
+compara por cobertura de pixels, o que o torna imune a variação do OCR.
+
+Os baselines ficam versionados em `tests/baselines/`. Uma execução que piore o
+recall de qualquer rótulo retorna código de saída 1. A regra é rodar antes e
+depois de cada bloco de mudança, e reverter o que piorar.
+
+## Configuração
+
+Tudo é configurável por variável de ambiente, no `docker-compose.yml`:
+
+| Variável | Padrão | O que faz |
+| --- | --- | --- |
+| `XDIAG_MOCK` | `0` | Simula OCR e PII, sem baixar modelo |
+| `XDIAG_CONFIDENCE` | `0.5` | Limite de confiança para detecções sem validação |
+| `XDIAG_PII_SCORE_FLOOR` | `0.15` | Piso de coleta antes da validação e do limite |
+| `XDIAG_MAX_PDF_PAGES` | `20` | Acima disso a API responde 422 |
+| `XDIAG_MAX_UPLOAD` | `20971520` | Tamanho máximo do arquivo, em bytes |
+| `XDIAG_PII_MODEL` | OpenMed 568M | Modelo de detecção de PII |
+| `XDIAG_OCR_USE_GPU` | `0` | Usa GPU no OCR |
+| `XDIAG_PII_DEVICE` | `-1` | `-1` para CPU, `0` para a primeira GPU |
+
+### Máquina com pouca memória
+
+Trocar para o modelo Small reduz o uso de RAM em cerca de 90% e o download
+para menos de 200 MB, ao custo de recall menor em entidades raras como
+prontuário, CEP e CRM longo. Recomendado abaixo de 4 GB de RAM:
+
+```yaml
+environment:
+  XDIAG_PII_MODEL: OpenMed/OpenMed-PII-Portuguese-SnowflakeMed-Small-44M-v1
+```
+
+### GPU NVIDIA
+
+Ajuste `XDIAG_OCR_USE_GPU=1` e `XDIAG_PII_DEVICE=0`, acrescente
+`runtime: nvidia` ao serviço `api` e troque a base do Dockerfile para
+`nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04`.
+
+## API
+
+A API fica em `http://localhost:8800`, com documentação OpenAPI em `/docs`.
+
+| Rota | O que faz |
+| --- | --- |
+| `GET /api/health` | Estado do serviço, modelo carregado, dispositivo |
+| `GET /api/labels` | Rótulos suportados, com cor e marcador de substituição |
+| `POST /api/redact` | Recebe `multipart/form-data` com o campo `file` |
+
+Parâmetros de query do `/api/redact`:
+
+- `threshold=0.5` filtra detecções abaixo do limite
+- `reveal=true` devolve também o texto original (uso administrativo)
+- `is_synthetic=true` marca o arquivo como sintético, o que faz a interface
+  desenhar a marca d'água
+
+Resposta, com uma entrada em `pages` por página do documento:
 
 ```json
 {
@@ -102,14 +336,16 @@ API retorna 422 explicito, nunca processa parcialmente em silencio):
     {
       "page_index": 0,
       "image_dimensions": { "w": 1240, "h": 1754 },
-      "ocr_blocks": [{ "text": "...", "bbox": [[x,y], ...], "confidence": 0.99, "char_start": 0, "char_end": 23 }],
+      "ocr_blocks": [
+        { "text": "...", "bbox": [[0,0]], "confidence": 0.99, "char_start": 0, "char_end": 23 }
+      ],
       "entities": [
         {
           "label": "BR_CPF",
           "text": "529.982.247-25",
           "score": 0.99,
           "char_span": [142, 156],
-          "bboxes": [[[x1,y1],[x2,y2],[x3,y3],[x4,y4]]],
+          "bboxes": [[[10,20],[90,20],[90,40],[10,40]]],
           "redacted": "[CPF]",
           "unmapped": false
         }
@@ -125,137 +361,85 @@ API retorna 422 explicito, nunca processa parcialmente em silencio):
 }
 ```
 
-Entidade com `unmapped: true` foi detectada no texto mas nao tem regiao
-mapeada na imagem; o frontend bloqueia o export ate a revisao.
+Entidade com `"unmapped": true` foi encontrada no texto mas não tem região
+correspondente na imagem. A interface bloqueia o export até você revisar.
 
-## Gerando os samples sinteticos
+## Estrutura do projeto
 
-```bash
-python scripts/generate_samples.py
+```
+backend/app/
+  main.py       FastAPI, CORS, arquivos estáticos
+  ocr.py        PaddleOCR e o mapa de deslocamento de caracteres
+  pii.py        modelo OpenMed, rótulos, cores e marcadores
+  patterns.py   padrões e validadores brasileiros (CPF, CNPJ, CNS)
+  mapper.py     converte posição no texto em retângulo na imagem
+  models.py     schemas Pydantic
+  config.py     configuração por variável de ambiente
+
+frontend/src/
+  components/   interface (viewer, lista de entidades, controles, ajustes)
+  stores/       estado (Zustand)
+  labels.ts     espelho da paleta e dos nomes dos rótulos do backend
+  theme/        design tokens
+
+desktop/        empacotamento para Windows, em desenvolvimento
+samples/        documentos sintéticos de demonstração
+scripts/        geração de corpus, avaliação de recall, smoke test
+tests/          corpus com gabarito e baselines de regressão
 ```
 
-Os PNGs sao escritos em `samples/`. O backend monta essa pasta como
-diretorio estatico, e o frontend oferece atalhos para carregar cada um
-sem upload manual.
+### Desenvolvimento
 
-## Smoke test
+Teste rápido do pipeline, sem modelo:
 
 ```bash
 XDIAG_MOCK=1 python scripts/smoke_test.py
 ```
 
-Roda o pipeline OCR + PII + mapper sem PaddleOCR nem OpenMed, validando os
-schemas e o calculo de bboxes. Util para testar mudancas no `mapper.py` ou
-em `models.py` rapidamente.
+Para acrescentar um rótulo novo, mexa nos dois lados: `LABEL_PLACEHOLDER` e
+`LABEL_COLOR` em `backend/app/pii.py`, e o espelho em
+`frontend/src/labels.ts`. Os dois arquivos têm que continuar em sincronia.
 
-## Harness de regressao de recall
+## Contribuindo
 
-O diretorio `tests/corpus/` contem 17 PNGs e 1 PDF sinteticos com gabarito
-JSON (spans de PII que DEVEM ser tarjados, spans opcionais e regioes nao
-textuais como barcode, QR, assinatura e faixa de ultrassom). Para regenerar:
+Contribuição é bem-vinda, especialmente:
 
-```bash
-pip install -r scripts/requirements-dev.txt
-python scripts/generate_samples.py --corpus
-```
+- documentos brasileiros que a ferramenta erra (**sem dado real**, por favor:
+  gere um sintético equivalente)
+- padrões e validadores de identificadores que faltam
+- melhorias de recall no corpus
 
-O avaliador roda o pipeline sobre o corpus e imprime, por label, recall e
-precisao, com os falsos negativos listados um a um e PRIMEIRO no relatorio.
-Politica do projeto: falso negativo e falha critica; falso positivo e ruido
-aceitavel. Execucao com o modelo real (reusa o volume de modelos):
+Antes de abrir um PR, rode o avaliador de recall antes e depois da sua
+mudança. PR que piora o recall de qualquer rótulo não entra, mesmo que melhore
+outra coisa.
 
-```bash
-docker compose run --rm eval --level text
-```
+**Nunca abra issue com documento de paciente real, nem em print.**
 
-```bash
-docker compose run --rm eval --level full
-```
+## Licença e créditos
 
-`--level text` injeta o texto canonico do gabarito direto no detector de PII
-(rapido, isola pii.py). `--level full` roda PNG -> OCR -> PII -> mapper e
-casa por cobertura de pixels, imune a variacao do OCR. `--save-baseline`
-grava `tests/baselines/baseline-<level>.json` (versionado); execucoes
-seguintes comparam e retornam exit code 1 se houver regressao. Regra do
-projeto: rodar antes e depois de cada bloco de mudanca; bloco que piora
-recall em qualquer label e revertido.
+Apache 2.0. Veja [LICENSE](LICENSE) e [NOTICE](NOTICE).
 
-## Validando o requisito de zero saida de rede
+Construído sobre trabalho de outras pessoas:
 
-Apos a primeira execucao (modelos ja em cache no volume `xdiag-redact-models`),
-suba o stack e observe o trafego:
+- [OpenMed](https://huggingface.co/OpenMed) pelo modelo de PII em português
+- [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR) pelo reconhecimento
+  de texto
+- A camada visual de acompanhamento da anonimização é inspirada no
+  privacy filter tracking do OpenMed
 
-```bash
-docker compose up -d
-docker run --rm --net=container:xdiag-privacy-api nicolaka/netshoot \
-  tcpdump -nn -i any not port 8000
-```
+Qualquer redistribuição precisa manter a nota de atribuição do modelo OpenMed.
 
-Faca varios uploads via UI. O `tcpdump` deve permanecer silencioso. Se
-preferir uma checagem mais simples, `docker compose logs api | grep -i
-"download\|http\|request"` nao deve mostrar trafego externo.
+## Roadmap
 
-## Adicionando novos labels
+- Instalador para Windows, sem exigir Docker
+- Export de imagem para documento com várias páginas
+- Export em JSON com trilha de auditoria (data, hash do arquivo, entidades,
+  limite usado)
+- Modo air gapped: modelos pré-baixados e validados por hash, sem nenhuma
+  busca na inicialização
+- Suporte a documentos com mais de um idioma
 
-1. Em `backend/app/pii.py`, acrescente o label novo aos dicionarios
-   `LABEL_PLACEHOLDER` e `LABEL_COLOR`.
-2. Espelhe a entrada em `frontend/src/labels.ts`
-   (`LABEL_COLORS` e o map `FRIENDLY`).
-3. Se o modelo OpenMed nao emite o label nativamente, voce pode:
-   - escrever um regex no caminho mock e tambem como filtro de pos
-     processamento em `_post_filter`, ou
-   - fine tunar / adicionar uma regra heuristica em `pii.py` apos a
-     deteccao do modelo.
+---
 
-## Trocando para o modelo Small (44M) para edge
-
-Em `docker-compose.yml`, ajuste:
-
-```yaml
-environment:
-  XDIAG_PII_MODEL: OpenMed/OpenMed-PII-Portuguese-SnowflakeMed-Small-44M-v1
-```
-
-A versao Small reduz o uso de RAM em cerca de 90 por cento e fica abaixo
-de 200 MB de download, ao custo de recall menor em entidades raras
-(prontuario, CEP, CRM longo). Recomendado para deploy em maquinas com
-4 GB de RAM ou menor.
-
-## UX, animacao progressiva
-
-A camada visual replica o tracking do OpenMed:
-
-- Layout split, esquerda 60 por cento (viewer), direita 40 por cento
-  (painel)
-- Documento renderizado em canvas com SVG overlay absoluto
-- Cada entidade entra com fade in de 200 ms apos um delay de 80 ms
-  acumulado, ordenada de cima para baixo pelo `y1` da bbox
-- Header sticky com contador `X / Y redacted` e label atual em destaque
-- Marca dagua diagonal `SYNTHETIC` quando o arquivo veio de `samples/`
-- Controles de threshold (re processa ao soltar o slider) e toggle de
-  texto original (com confirmacao via toast)
-- Exporta PNG anonimizado (poligonos preenchidos em preto solido) e TXT
-  com placeholders por entidade
-
-## Modelos e dependencias principais
-
-- PaddleOCR 2.8.x, lang=pt, det+rec
-- OpenMed PII Portuguese SnowflakeMed Large 568M (default) ou Small 44M
-- transformers 4.45+, torch 2.4+, accelerate, sentencepiece
-- pypdfium2 (renderiza primeira pagina de PDF sem dependencias nativas)
-
-## Licenca
-
-Apache 2.0, herdada do projeto OpenMed. Inclua a nota de atribuicao do
-modelo OpenMed em qualquer redistribuicao.
-
-## Roadmap curto
-
-- multi pagina de PDF com paginacao no viewer
-- exportacao em JSON com auditoria (timestamp, hash do upload, lista de
-  entidades, threshold)
-- batching server side com fila local (RQ + redis local) para clinicas
-  com throughput mais alto
-- suporte ao modelo Multi (varias linguas) para documentos hibridos
-- modo air gapped: pre baixar modelos para um diretorio e validar via
-  hash em vez de pegar no startup
+<sub>Xdiag Tecnologias Ltda. As soluções da Xdiag são ferramentas de apoio e
+não substituem avaliação profissional.</sub>
