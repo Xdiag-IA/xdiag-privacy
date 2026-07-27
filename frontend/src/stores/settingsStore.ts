@@ -38,7 +38,11 @@ export const useSettingsStore = create<SettingsState>()(
 
       setDefaultThreshold: (v) => set({ defaultThreshold: v }),
       setDefaultExportFormat: (v) => set({ defaultExportFormat: v }),
-      setFilenameTemplate: (v) => set({ filenameTemplate: v || DEFAULT_FILENAME_TEMPLATE }),
+      // Aceita vazio de proposito. Trocar "" pelo padrao aqui impedia o
+      // usuario de limpar o campo para digitar outro template: a cada tecla
+      // de apagar, o default voltava. O fallback vive em buildFilename, no
+      // ponto de uso, onde ele realmente importa.
+      setFilenameTemplate: (v) => set({ filenameTemplate: v }),
 
       chooseOutputDir: async () => {
         if (!window.showDirectoryPicker) return;
@@ -78,7 +82,10 @@ function randomId(): string {
 export function buildFilename(template: string, base: string, ext: string, id: string = randomId()): string {
   const today = new Date().toISOString().slice(0, 10);
   const safeBase = base || "documento";
-  return template
+  // Template vazio cai no padrao: nunca exportar com nome vazio, e o padrao e
+  // o unico que garante nome sem dado pessoal.
+  const safeTemplate = template.trim() || DEFAULT_FILENAME_TEMPLATE;
+  return safeTemplate
     .replace(/\{base\}/g, safeBase)
     .replace(/\{ext\}/g, ext)
     .replace(/\{date\}/g, today)

@@ -68,6 +68,53 @@ const FORMAT_OPTIONS: { value: ExportFormat; label: string }[] = [
   { value: "both", label: "Ambos" },
 ];
 
+// Exemplo usado na explicação e na prévia. Um nome de arquivo realista de
+// laboratório brasileiro, que é justamente o caso que o padrão evita.
+const EXEMPLO_BASE = "laudo_joao_silva";
+const EXEMPLO_ARQUIVO = `${EXEMPLO_BASE}.pdf`;
+
+const TOKENS: { token: string; desc: string; risco?: boolean }[] = [
+  {
+    token: "{id}",
+    desc: "Código aleatório, gerado na hora do export e diferente a cada arquivo. Não sai do documento, então não carrega nada de ninguém.",
+  },
+  {
+    token: "{date}",
+    desc: "A data de hoje, em aaaa-mm-dd. Serve para você achar o arquivo depois sem precisar do nome do paciente.",
+  },
+  {
+    token: "{ext}",
+    desc: "A extensão do que está saindo: png quando é a imagem tarjada, txt quando é o texto.",
+  },
+  {
+    token: "{base}",
+    desc: "O nome do arquivo que você enviou, sem a extensão. É o único token que pode vazar dado pessoal.",
+    risco: true,
+  },
+];
+
+/** Chip de token, em mono, para o nome do token não se perder no texto. */
+function TokenChip({ children, risco }: { children: React.ReactNode; risco?: boolean }) {
+  return (
+    <Box
+      as="span"
+      flexShrink={0}
+      px={1.5}
+      py={0.5}
+      borderRadius="6px"
+      fontFamily="mono"
+      fontSize="2xs"
+      fontWeight={600}
+      bg={risco ? "rgba(244, 63, 94, 0.12)" : "rgba(34, 211, 238, 0.1)"}
+      color={risco ? "#fda4af" : "brand.200"}
+      border="1px solid"
+      borderColor={risco ? "rgba(244, 63, 94, 0.3)" : "line.brand"}
+    >
+      {children}
+    </Box>
+  );
+}
+
 export function SettingsDrawer() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
@@ -126,8 +173,13 @@ export function SettingsDrawer() {
     setNeedsReconnect(false);
   }, [clearOutputDir]);
 
-  const preview = buildFilename(filenameTemplate || DEFAULT_FILENAME_TEMPLATE, "laudo_joao_silva", "png", previewId);
+  // buildFilename ja cai no padrao com template vazio, entao a previa continua
+  // mostrando um nome valido enquanto o campo esta sendo editado.
+  const preview = buildFilename(filenameTemplate, EXEMPLO_BASE, "png", previewId);
   const usesOriginalName = filenameTemplate.includes("{base}");
+  // So alerta se o usuario escreveu algo: campo vazio cai no padrao, que tem
+  // {ext}, entao nao ha o que avisar.
+  const semExtensao = filenameTemplate.trim().length > 0 && !filenameTemplate.includes("{ext}");
 
   return (
     <>
@@ -268,25 +320,116 @@ export function SettingsDrawer() {
 
               <Divider />
 
-              <Stack spacing={2}>
+              <Stack spacing={3}>
                 <SectionLabel>Nome do arquivo exportado</SectionLabel>
-                <Input
-                  size="sm"
-                  value={filenameTemplate}
-                  onChange={(e) => setFilenameTemplate(e.target.value)}
-                  placeholder={DEFAULT_FILENAME_TEMPLATE}
-                  fontFamily="mono"
-                  fontSize="xs"
-                />
-                <Text fontSize="2xs" color="slate.500" lineHeight={1.6}>
-                  Tokens disponíveis: <b>{"{id}"}</b> (código aleatório, sem
-                  dado pessoal), <b>{"{date}"}</b> (aaaa-mm-dd), <b>{"{ext}"}</b>{" "}
-                  (png/txt) e <b>{"{base}"}</b> (nome original do arquivo
-                  enviado).
+
+                <Text fontSize="2xs" color="slate.400" lineHeight={1.7}>
+                  A tarja cobre o que está <b>dentro</b> do documento. O nome do
+                  arquivo fica de fora dela, e viaja junto: aparece no e-mail,
+                  no WhatsApp, na pasta compartilhada. Como laudo de laboratório
+                  quase sempre chega já nomeado com o paciente, exportar com o
+                  mesmo nome entregaria justamente o dado que você acabou de
+                  esconder.
                 </Text>
-                <Text fontSize="2xs" color="brand.200" fontFamily="mono">
-                  {preview}
+                <Text fontSize="2xs" color="slate.400" lineHeight={1.7}>
+                  Por isso o padrão monta um nome novo, que não aproveita nada
+                  do original:
                 </Text>
+
+                {/* Antes e depois: e o que faz a regra ficar obvia sem ler nada. */}
+                <Box
+                  borderRadius="10px"
+                  border="1px solid"
+                  borderColor="line.subtle"
+                  bg="rgba(2, 6, 23, 0.4)"
+                  px={3}
+                  py={2.5}
+                >
+                  <Stack spacing={2}>
+                    <Box>
+                      <Text fontSize="2xs" color="slate.500" mb={0.5}>
+                        Você envia
+                      </Text>
+                      <Text fontSize="xs" fontFamily="mono" color="#fda4af">
+                        {EXEMPLO_ARQUIVO}
+                      </Text>
+                    </Box>
+                    <Box>
+                      <Text fontSize="2xs" color="slate.500" mb={0.5}>
+                        Sai como
+                      </Text>
+                      <Text fontSize="xs" fontFamily="mono" color="brand.200">
+                        {preview}
+                      </Text>
+                    </Box>
+                  </Stack>
+                </Box>
+
+                <Box>
+                  <HStack justify="space-between" mb={1.5}>
+                    <Text fontSize="2xs" color="slate.500">
+                      Modelo do nome
+                    </Text>
+                    {filenameTemplate.trim() !== DEFAULT_FILENAME_TEMPLATE && (
+                      <Button
+                        size="xs"
+                        variant="ghost"
+                        h="20px"
+                        fontSize="2xs"
+                        fontWeight={500}
+                        onClick={() => setFilenameTemplate(DEFAULT_FILENAME_TEMPLATE)}
+                      >
+                        Restaurar padrão
+                      </Button>
+                    )}
+                  </HStack>
+                  <Input
+                    size="sm"
+                    value={filenameTemplate}
+                    onChange={(e) => setFilenameTemplate(e.target.value)}
+                    placeholder={DEFAULT_FILENAME_TEMPLATE}
+                    fontFamily="mono"
+                    fontSize="xs"
+                    aria-label="Modelo do nome do arquivo exportado"
+                  />
+                </Box>
+
+                <Stack spacing={2}>
+                  <Text fontSize="2xs" color="slate.500">
+                    O que cada peça faz
+                  </Text>
+                  {TOKENS.map((t) => (
+                    <HStack key={t.token} align="flex-start" spacing={2.5}>
+                      <TokenChip risco={t.risco}>{t.token}</TokenChip>
+                      <Text fontSize="2xs" color="slate.500" lineHeight={1.6}>
+                        {t.desc}
+                      </Text>
+                    </HStack>
+                  ))}
+                  <Text fontSize="2xs" color="slate.600" lineHeight={1.6}>
+                    Qualquer outro texto que você digitar entra no nome como
+                    está. Campo vazio volta ao padrão na hora de exportar.
+                  </Text>
+                </Stack>
+
+                {semExtensao && (
+                  <Box
+                    px={2.5}
+                    py={2}
+                    borderRadius="8px"
+                    bg="rgba(245, 158, 11, 0.08)"
+                    border="1px solid"
+                    borderColor="rgba(245, 158, 11, 0.3)"
+                  >
+                    <Text fontSize="2xs" color="#fcd34d" lineHeight={1.6}>
+                      <b>Sem {"{ext}"}:</b> o arquivo sai sem extensão e o
+                      Windows não vai saber com o que abrir. Você consegue
+                      renomear depois, mas é mais simples deixar o {"{ext}"} no
+                      fim.
+                    </Text>
+                  </Box>
+                )}
+
                 {usesOriginalName && (
                   <Box
                     px={2.5}
@@ -297,12 +440,12 @@ export function SettingsDrawer() {
                     borderColor="rgba(244, 63, 94, 0.28)"
                   >
                     <Text fontSize="2xs" color="#fda4af" lineHeight={1.6}>
-                      <b>Atenção:</b> {"{base}"} reaproveita o nome do arquivo
-                      enviado. Se o arquivo original já vier com o nome do
-                      paciente (ex.: laudo_joao_silva.pdf), o arquivo
-                      exportado sai com esse mesmo nome mesmo com o conteúdo
-                      anonimizado. Prefira {"{id}"} e {"{date}"} se o nome do
-                      arquivo também precisa ficar sem dado pessoal.
+                      <b>Atenção:</b> com {"{base}"} o arquivo exportado herda o
+                      nome do que você enviou. Se o original for{" "}
+                      {EXEMPLO_ARQUIVO}, o anonimizado sai com o nome do
+                      paciente também, mesmo com todo o conteúdo tarjado. Só use
+                      se os seus arquivos de entrada já tiverem nome sem dado
+                      pessoal.
                     </Text>
                   </Box>
                 )}
