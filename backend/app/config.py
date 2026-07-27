@@ -33,6 +33,13 @@ def _float(val: str | None, default: float) -> float:
         return default
 
 
+def _path(val: str | None) -> Path | None:
+    """Caminho opcional. String vazia conta como nao definido."""
+    if val is None or not val.strip():
+        return None
+    return Path(val)
+
+
 @dataclass(frozen=True)
 class Settings:
     """Process wide configuration."""
@@ -81,8 +88,22 @@ class Settings:
     max_pdf_pages: int = 20
 
     # Storage
-    samples_dir: Path = field(default_factory=lambda: Path("/app/samples"))
-    cache_dir: Path = field(default_factory=lambda: Path("/app/.cache"))
+    # Defaults relativos de proposito. Os absolutos antigos (/app/...) so
+    # existiam dentro do container; no Windows, sem env, o backend escrevia em
+    # lugar nenhum. Docker e o app de mesa definem os dois explicitamente.
+    samples_dir: Path = field(default_factory=lambda: Path("samples"))
+    cache_dir: Path = field(default_factory=lambda: Path(".cache"))
+    # Diretorio dos modelos do PaddleOCR. Vazio deixa o PaddleOCR usar o
+    # default dele, que e ~/.paddleocr: fora da pasta do aplicativo, sobrevive
+    # a desinstalacao e quebra em perfil corporativo restrito. O perfil desktop
+    # aponta para dentro da propria instalacao.
+    ocr_model_dir: Path | None = None
+
+    # Pasta do frontend ja compilado. Quando definida, o backend serve o SPA
+    # na propria origem. E o que o app de mesa usa: origem unica mata o CORS e,
+    # mais importante, mantem contexto seguro (file:// nao e), sem o qual a
+    # File System Access API da pasta de saida nao funciona.
+    web_dir: Path | None = None
 
     # Behavior toggles
     mock_mode: bool = False  # if true, synthesize OCR + PII without loading models
@@ -123,8 +144,10 @@ class Settings:
             pii_score_floor=_float(os.getenv("XDIAG_PII_SCORE_FLOOR"), 0.15),
             max_upload_bytes=_int(os.getenv("XDIAG_MAX_UPLOAD"), 20 * 1024 * 1024),
             max_pdf_pages=_int(os.getenv("XDIAG_MAX_PDF_PAGES"), 20),
-            samples_dir=Path(os.getenv("XDIAG_SAMPLES_DIR", "/app/samples")),
-            cache_dir=Path(os.getenv("XDIAG_CACHE_DIR", "/app/.cache")),
+            samples_dir=Path(os.getenv("XDIAG_SAMPLES_DIR", "samples")),
+            cache_dir=Path(os.getenv("XDIAG_CACHE_DIR", ".cache")),
+            ocr_model_dir=_path(os.getenv("XDIAG_OCR_MODEL_DIR")),
+            web_dir=_path(os.getenv("XDIAG_WEB_DIR")),
             mock_mode=_bool(os.getenv("XDIAG_MOCK"), False),
             eager_load=_bool(os.getenv("XDIAG_EAGER_LOAD"), True),
         )

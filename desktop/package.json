@@ -1,0 +1,74 @@
+{
+  "name": "xdiag-privacy-desktop",
+  "productName": "Xdiag Privacy",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Anonimização visual de documentos médicos brasileiros, 100% local",
+  "author": "Xdiag Tecnologias Ltda",
+  "license": "Apache-2.0",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win --x64"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "br.com.xdiag.privacy",
+    "productName": "Xdiag Privacy",
+    "copyright": "Copyright 2026 Xdiag Tecnologias Ltda",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build-assets"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../backend/app",
+        "to": "backend/app",
+        "filter": [
+          "**/*",
+          "!**/__pycache__/**"
+        ]
+      },
+      {
+        "from": "../frontend/dist",
+        "to": "web"
+      },
+      {
+        "from": "../samples",
+        "to": "samples"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build-assets/icon.ico",
+      "artifactName": "XdiagPrivacy-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Xdiag Privacy",
+      "installerLanguages": [
+        "pt_BR"
+      ],
+      "deleteAppDataOnUninstall": false
+    }
+  }
+}

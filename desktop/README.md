@@ -9,8 +9,51 @@ GPU; os dois convivem no mesmo repositório.
 
 ## Estado atual
 
-Fase 0 concluída: **o backend roda fora do Docker, no Windows, a partir de uma
-pasta relocável.** O que falta é o shell Electron, o instalador e a assinatura.
+**O instalador existe e tem 78,8 MB.** Ele leva o Electron, a interface e o
+código do backend; o runtime Python (406 MB compactado) é baixado na primeira
+execução, com retomada e verificação de SHA256. Falta a assinatura de código.
+
+## Por que o runtime não vai dentro do instalador
+
+Não é preferência, é limite técnico. O NSIS é um executável de 32 bits e falha
+ao mapear em memória o próprio payload acima de mais ou menos 2 GB. Com tudo
+embutido, o build morre assim:
+
+```
+File: failed creating mmap of "xdiag-privacy-desktop-0.1.0-x64.nsis.7z"
+```
+
+O pacote tinha 2,4 GB compactados e 4,2 GB em disco. Instalador com tudo
+dentro simplesmente não compila.
+
+A separação traz três benefícios de brinde: atualização do app é de 78 MB, o
+código do backend viaja junto da versão do app (nunca descasa da interface), e
+desinstalar não apaga os 2 GB de modelo.
+
+## Como o preparo da primeira execução funciona
+
+`src/setup.js`, exercitado por um teste que derruba a conexão de propósito:
+
+1. baixa com `Range`, retomando de onde parou, até 5 tentativas com espera
+   crescente;
+2. confere o SHA256 antes de extrair, e descarta o arquivo se não bater;
+3. extrai com o `bsdtar` do próprio Windows, sem carregar descompactador;
+4. extrai para pasta temporária e só então renomeia, para queda de energia não
+   deixar uma instalação pela metade que passaria no teste de "python.exe
+   existe".
+
+Medido de ponta a ponta, com queda forçada aos 33%: 73 s em servidor local,
+hash conferido, e o Python extraído importando `torch` e `paddle`.
+
+### Publicando um runtime novo
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\desktop\scripts\pack-runtime.ps1
+```
+
+Gera o zip e o `.sha256` em `desktop/dist-artifacts/`. Publique como asset de
+release e cole `url` e `sha256` em `src/runtime-manifest.json`. Sem o hash
+preenchido o app recusa baixar, de propósito.
 
 ## Como reproduzir
 

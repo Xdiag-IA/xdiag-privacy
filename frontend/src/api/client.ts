@@ -1,8 +1,11 @@
 import axios, { AxiosInstance } from "axios";
 import type { HealthResponse, LabelsResponse, RedactResponse } from "./types";
 
-const baseURL =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "http://localhost:8000";
+// Padrao vazio, ou seja, chamada relativa a origem da pagina. E o caso do
+// aplicativo de mesa, onde o proprio backend serve o SPA. Quem roda a
+// interface separada do backend (dev server, container web) define
+// VITE_API_BASE_URL apontando para a API.
+const baseURL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "";
 
 const http: AxiosInstance = axios.create({
   baseURL,

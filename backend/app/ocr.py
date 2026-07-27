@@ -127,13 +127,24 @@ class OCREngine:
                 self.settings.ocr_lang,
                 self.settings.ocr_use_gpu,
             )
-            self._engine = PaddleOCR(
-                use_angle_cls=self.settings.ocr_use_angle_cls,
-                lang=self.settings.ocr_lang,
-                use_gpu=self.settings.ocr_use_gpu,
-                show_log=False,
-                det_db_box_thresh=self.settings.ocr_det_db_box_thresh,
-            )
+            kwargs: dict[str, Any] = {
+                "use_angle_cls": self.settings.ocr_use_angle_cls,
+                "lang": self.settings.ocr_lang,
+                "use_gpu": self.settings.ocr_use_gpu,
+                "show_log": False,
+                "det_db_box_thresh": self.settings.ocr_det_db_box_thresh,
+            }
+            # Sem estes caminhos o PaddleOCR 2.x baixa os modelos para
+            # ~/.paddleocr, fora da pasta do aplicativo: sobrevive a
+            # desinstalacao e falha em perfil corporativo restrito. Note que
+            # PADDLE_PDX_CACHE_HOME NAO resolve, aquela variavel e do PaddleX.
+            model_dir = self.settings.ocr_model_dir
+            if model_dir is not None:
+                kwargs["det_model_dir"] = str(model_dir / "det")
+                kwargs["rec_model_dir"] = str(model_dir / "rec")
+                kwargs["cls_model_dir"] = str(model_dir / "cls")
+                logger.info("PaddleOCR model dir: %s", model_dir)
+            self._engine = PaddleOCR(**kwargs)
             self._loaded = True
             logger.info("PaddleOCR loaded")
 

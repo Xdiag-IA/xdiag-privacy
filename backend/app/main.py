@@ -207,6 +207,30 @@ def create_app() -> FastAPI:
             content={"error": "internal_error", "detail": str(exc)},
         )
 
+    # O SPA e montado por ULTIMO, na raiz. StaticFiles em "/" captura tudo que
+    # sobrar, entao qualquer rota registrada depois daqui ficaria inalcancavel.
+    #
+    # Isto so acontece no perfil desktop (XDIAG_WEB_DIR definido). Ali a
+    # interface e a API passam a viver na MESMA origem, o que resolve duas
+    # coisas de uma vez: acaba o CORS, e a janela do Electron carrega de
+    # http://127.0.0.1:<porta> em vez de file://. A segunda importa mais do que
+    # parece: file:// nao e contexto seguro, e sem contexto seguro a File
+    # System Access API nao existe, ou seja, a pasta de saida configuravel
+    # simplesmente nao funcionaria.
+    if settings.web_dir is not None:
+        if settings.web_dir.is_dir():
+            app.mount(
+                "/",
+                StaticFiles(directory=str(settings.web_dir), html=True),
+                name="web",
+            )
+            logger.info("serving SPA from %s", settings.web_dir)
+        else:
+            logger.warning(
+                "XDIAG_WEB_DIR aponta para %s, que nao existe; SPA nao sera servido",
+                settings.web_dir,
+            )
+
     return app
 
 

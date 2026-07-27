@@ -1,0 +1,12 @@
+{
+  "_comentario": [
+    "Runtime Python baixado na primeira execucao. Nao vai dentro do instalador",
+    "porque o NSIS e 32 bits e falha ao mapear payload acima de ~2 GB.",
+    "Gere o zip com desktop/scripts/pack-runtime.ps1, publique como asset de",
+    "release, e cole url e sha256 aqui. O sha256 e obrigatorio: sem ele o app",
+    "instalaria qualquer coisa que o servidor devolvesse."
+  ],
+  "version": "0.1.0",
+  "url": "https://github.com/Xdiag-IA/xdiag-privacy/releases/download/runtime-v0.1.0/xdiag-runtime-win-x64-0.1.0.zip",
+  "sha256": "56d9f10b14c674b1a80c1f4413314bde110949fbd7ae342050e4e938b1206dc4"
+}

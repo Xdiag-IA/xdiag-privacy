@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- A splash nao faz rede nem carrega recurso externo. Precisa apenas do
+         style e do script inline que expoe window.setStatus, chamado pelo
+         processo principal para atualizar a mensagem. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:;"
+    />
+    <title>Xdiag Privacy</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        background:
+          radial-gradient(70% 50% at 75% 0%, rgba(6, 182, 212, 0.16), transparent 62%),
+          radial-gradient(50% 40% at 10% 100%, rgba(139, 92, 246, 0.13), transparent 60%),
+          #020617;
+        color: #cbd5e1;
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 22px;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        border-radius: 12px;
+        overflow: hidden;
+        user-select: none;
+        -webkit-app-region: drag;
+      }
+      .marca { filter: drop-shadow(0 6px 18px rgba(34, 211, 238, 0.3)); }
+      .nome {
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: -0.015em;
+        color: #f8fafc;
+      }
+      .nome span {
+        background: linear-gradient(90deg, #67e8f9, #06b6d4);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .status {
+        font-size: 12.5px;
+        color: #64748b;
+        min-height: 18px;
+        text-align: center;
+        padding: 0 28px;
+        line-height: 1.5;
+      }
+      .barra {
+        width: 190px;
+        height: 3px;
+        border-radius: 999px;
+        background: rgba(148, 163, 184, 0.14);
+        overflow: hidden;
+        position: relative;
+      }
+      .barra::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        width: 40%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #06b6d4, #67e8f9);
+        animation: desliza 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      }
+      /* Com porcentagem conhecida a barra vira progresso real: sem animacao,
+         largura proporcional. Download de 600 MB com barra indeterminada faz
+         a pessoa achar que travou. */
+      .barra.determinada::after {
+        animation: none;
+        width: var(--pct, 0%);
+        transition: width 200ms ease;
+      }
+      @keyframes desliza {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(250%); }
+      }
+      .aviso {
+        position: absolute;
+        bottom: 16px;
+        font-size: 10.5px;
+        color: #334155;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .barra::after { animation: none; width: 100%; opacity: 0.5; }
+      }
+    </style>
+  </head>
+  <body>
+    <svg class="marca" width="66" height="66" viewBox="0 0 64 64" aria-hidden="true">
+      <defs>
+        <linearGradient id="x" x1="0.15" y1="0.1" x2="0.85" y2="0.9">
+          <stop offset="0" stop-color="#7dedfb" />
+          <stop offset=".52" stop-color="#22d3ee" />
+          <stop offset="1" stop-color="#0891b2" />
+        </linearGradient>
+        <linearGradient id="p" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#0c1c30" />
+          <stop offset="1" stop-color="#050f1d" />
+        </linearGradient>
+        <linearGradient id="t" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#0d1c30" />
+          <stop offset="1" stop-color="#030a16" />
+        </linearGradient>
+      </defs>
+      <rect width="64" height="64" rx="15" fill="url(#t)" />
+      <rect x=".75" y=".75" width="62.5" height="62.5" rx="14.25" fill="none" stroke="#22d3ee" stroke-opacity=".22" stroke-width="1.5" />
+      <g stroke="url(#x)" stroke-width="8.4" stroke-linecap="round" fill="none">
+        <path d="M15.5 14.5 L48.5 49.5" />
+        <path d="M48.5 14.5 L15.5 49.5" />
+      </g>
+      <rect x="9" y="26.6" width="46" height="10.8" rx="5.4" fill="url(#p)" stroke="#22d3ee" stroke-opacity=".9" stroke-width="1.7" />
+    </svg>
+
+    <div class="nome">Xdiag <span>Privacy</span></div>
+    <div class="barra" id="barra"></div>
+    <div class="status" id="status">Iniciando...</div>
+    <div class="aviso">Tudo roda no seu computador</div>
+
+    <script>
+      window.setStatus = function (texto, pct) {
+        var s = document.getElementById("status");
+        var b = document.getElementById("barra");
+        // A primeira linha e o titulo da etapa, a segunda o detalhe.
+        var linhas = String(texto).split("\n");
+        s.innerHTML = "";
+        for (var i = 0; i < linhas.length; i++) {
+          var d = document.createElement("div");
+          d.textContent = linhas[i];
+          if (i > 0) { d.style.color = "#475569"; d.style.fontSize = "11.5px"; d.style.marginTop = "3px"; }
+          s.appendChild(d);
+        }
+        if (typeof pct === "number" && isFinite(pct)) {
+          b.classList.add("determinada");
+          b.style.setProperty("--pct", pct.toFixed(1) + "%");
+        } else {
+          b.classList.remove("determinada");
+        }
+      };
+    </script>
+  </body>
+</html>

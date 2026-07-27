@@ -45,3 +45,9 @@ desktop/dist/
 # Ad hoc artifacts
 *.tmp
 *.bak
+# Desktop: saidas de build e artefatos publicaveis
+desktop/build/
+desktop/dist/
+desktop/dist-artifacts/
+desktop/node_modules/
+desktop/build-assets/
