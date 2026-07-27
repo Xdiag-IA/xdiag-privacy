@@ -430,7 +430,10 @@ def eval_full(docs: list[DocGab], threshold: float) -> LevelReport:
             page = doc.pages[pi]
             buf = io.BytesIO()
             img.save(buf, format="PNG")
-            ocr_result = ocr.run(buf.getvalue(), "image/png")
+            ocr_out = ocr.run(buf.getvalue(), "image/png")
+            # run() retorna lista de paginas desde o suporte a multipagina;
+            # aceita tambem o formato antigo (objeto unico) por robustez.
+            ocr_result = ocr_out[0] if isinstance(ocr_out, list) else ocr_out
             pii_entities = pii.detect(ocr_result.text, threshold=threshold)
             entities = build_entities(pii_entities, ocr_result.lines)
 

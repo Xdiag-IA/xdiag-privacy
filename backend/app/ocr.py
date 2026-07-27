@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import io
 import logging
+import sys
 from dataclasses import dataclass
 from threading import Lock
 from typing import Any
@@ -26,6 +27,34 @@ from PIL import Image
 from .config import Settings, get_settings
 
 logger = logging.getLogger(__name__)
+
+
+def _preload_torch_before_paddle() -> None:
+    """Importa torch antes de paddle. Obrigatorio no Windows.
+
+    torch e paddlepaddle empacotam cada um a sua copia de `libiomp5md.dll`, o
+    runtime OpenMP da Intel. O Windows resolve DLL por NOME de modulo ja
+    carregado, nao por caminho, entao a primeira das duas bibliotecas a ser
+    importada fixa qual libiomp5md o processo inteiro vai usar.
+
+    Na ordem paddle -> torch, o `torch\\lib\\shm.dll` acaba resolvido contra o
+    libiomp5md do paddle, que nao exporta tudo que ele espera, e o import
+    morre com OSError WinError 127 ("procedimento especificado nao
+    encontrado"). Na ordem torch -> paddle, os dois carregam.
+
+    O container Linux nunca viu isso: la o loader resolve por SONAME com
+    caminho, e as duas copias convivem. E um bug que so existe no build
+    empacotado para Windows, e por isso mora aqui, colado no unico import de
+    paddleocr do projeto, em vez de depender da ordem de warmup em main.py.
+    """
+    if sys.platform != "win32":
+        return
+    try:
+        import torch  # noqa: F401
+    except Exception as exc:  # pragma: no cover (so quebra em build torto)
+        # Nao e fatal por si so: se torch nao existe, paddle carrega sozinho e
+        # quem quebra depois e o motor de PII, com erro proprio e mais claro.
+        logger.warning("nao foi possivel pre carregar torch antes do paddle: %s", exc)
 
 
 @dataclass
@@ -49,6 +78,19 @@ class OCRResult:
     lines: list[OCRLine]
     text: str  # deidentified candidate, joined by newline
     image_png: bytes = b""  # canonical PNG bytes of the page actually OCRd
+
+
+class PageLimitExceeded(ValueError):
+    """PDF com mais paginas que o limite configurado. Nunca processar em
+    silencio apenas parte do documento: o chamador deve retornar 422."""
+
+    def __init__(self, pages: int, limit: int) -> None:
+        self.pages = pages
+        self.limit = limit
+        super().__init__(
+            f"PDF com {pages} páginas excede o limite de {limit}; "
+            "ajuste XDIAG_MAX_PDF_PAGES ou divida o documento"
+        )
 
 
 class OCREngine:
@@ -77,6 +119,7 @@ class OCREngine:
         with self._lock:
             if self._engine is not None:
                 return
+            _preload_torch_before_paddle()
             from paddleocr import PaddleOCR  # imported lazily to keep CLI snappy
 
             logger.info(
@@ -94,8 +137,16 @@ class OCREngine:
             self._loaded = True
             logger.info("PaddleOCR loaded")
 
-    def run(self, image_bytes: bytes, mimetype: str) -> OCRResult:
-        image = self._decode(image_bytes, mimetype)
+    def run(self, image_bytes: bytes, mimetype: str) -> list[OCRResult]:
+        """Processa TODAS as paginas do documento, na ordem.
+
+        Imagem: 1 pagina. PDF: todas, ate max_pdf_pages (acima disso,
+        PageLimitExceeded; nunca processar em silencio so a primeira).
+        """
+        images = self._decode_pages(image_bytes, mimetype)
+        return [self._run_single(image) for image in images]
+
+    def _run_single(self, image: Image.Image) -> OCRResult:
         # Re encode to a canonical PNG once so callers (and the frontend)
         # can render exactly what OCR saw, regardless of input format
         # (PDFs become PNGs, JPGs become PNGs, etc.). The bbox coordinates
@@ -121,10 +172,9 @@ class OCREngine:
         result.image_png = canonical_png
         return result
 
-    @staticmethod
-    def _decode(image_bytes: bytes, mimetype: str) -> Image.Image:
+    def _decode_pages(self, image_bytes: bytes, mimetype: str) -> list[Image.Image]:
         if mimetype == "application/pdf":
-            return _decode_pdf_first_page(image_bytes)
+            return _decode_pdf_pages(image_bytes, self.settings.max_pdf_pages)
         try:
             img = Image.open(io.BytesIO(image_bytes))
             img.load()
@@ -132,7 +182,7 @@ class OCREngine:
             raise ValueError(f"could not decode image: {exc}") from exc
         if img.mode != "RGB":
             img = img.convert("RGB")
-        return img
+        return [img]
 
     @staticmethod
     def _normalize_paddle_output(raw: Any) -> list[tuple[list[list[float]], str, float]]:
@@ -228,8 +278,8 @@ class OCREngine:
         return OCRResult(width=width, height=height, lines=lines, text="\n".join(text_parts))
 
 
-def _decode_pdf_first_page(pdf_bytes: bytes) -> Image.Image:
-    """Render page 1 of a PDF using pypdfium2 (no native deps required)."""
+def _decode_pdf_pages(pdf_bytes: bytes, max_pages: int) -> list[Image.Image]:
+    """Renderiza TODAS as paginas do PDF via pypdfium2, na ordem."""
     try:
         import pypdfium2 as pdfium
     except ImportError as exc:  # pragma: no cover
@@ -237,13 +287,21 @@ def _decode_pdf_first_page(pdf_bytes: bytes) -> Image.Image:
             "PDF support requires pypdfium2; install with pip install pypdfium2"
         ) from exc
     doc = pdfium.PdfDocument(io.BytesIO(pdf_bytes))
-    if len(doc) == 0:
+    n = len(doc)
+    if n == 0:
         raise ValueError("PDF contains no pages")
-    page = doc[0]
-    pil = page.render(scale=2).to_pil()  # 2x for higher OCR fidelity
-    if pil.mode != "RGB":
-        pil = pil.convert("RGB")
-    return pil
+    if n > max_pages:
+        raise PageLimitExceeded(n, max_pages)
+    out: list[Image.Image] = []
+    for i in range(n):
+        try:
+            pil = doc[i].render(scale=2).to_pil()  # 2x for higher OCR fidelity
+        except Exception as exc:
+            raise ValueError(f"falha ao renderizar a página {i + 1} do PDF: {exc}") from exc
+        if pil.mode != "RGB":
+            pil = pil.convert("RGB")
+        out.append(pil)
+    return out
 
 
 _engine_singleton: OCREngine | None = None

@@ -17,6 +17,7 @@ node_modules/
 dist/
 .vite/
 *.local
+*.tsbuildinfo
 
 # Editors and OS
 .idea/
@@ -35,6 +36,11 @@ Thumbs.db
 **/.cache/huggingface/
 **/.cache/paddle/
 **/.cache/paddleocr/
+
+# Desktop build: runtime Python relocavel, wheels baixadas e instaladores.
+# Sao gigabytes gerados pelo build-runtime.ps1, nunca versionados.
+desktop/build/
+desktop/dist/
 
 # Ad hoc artifacts
 *.tmp

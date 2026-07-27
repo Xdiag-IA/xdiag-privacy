@@ -1,7 +1,10 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-const envPort = Number(process.env.PORT);
+// Lido via globalThis para nao exigir @types/node so por causa desta linha.
+const nodeEnv = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+  .process?.env;
+const envPort = Number(nodeEnv?.PORT);
 
 export default defineConfig({
   plugins: [react()],

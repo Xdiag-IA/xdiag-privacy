@@ -56,18 +56,18 @@ class Stats(BaseModel):
     unmapped: int = 0
 
 
-class RedactResponse(BaseModel):
+class PageResult(BaseModel):
+    """Resultado completo de UMA pagina do documento."""
+
+    page_index: int
     image_dimensions: ImageDimensions
     ocr_blocks: list[OCRBlock]
     entities: list[Entity]
     deidentified_text: str
-    stats: Stats
-    is_synthetic: bool = False
     original_text: Optional[str] = Field(
         default=None,
         description="Only populated when reveal=true, controlled at API layer.",
     )
-    elapsed_ms: int = 0
     rendered_image_data_url: str = Field(
         default="",
         description=(
@@ -75,6 +75,14 @@ class RedactResponse(BaseModel):
             "should display this image so bboxes align (handles PDF->PNG)."
         ),
     )
+
+
+class RedactResponse(BaseModel):
+    pages: list[PageResult]
+    page_count: int
+    stats: Stats
+    is_synthetic: bool = False
+    elapsed_ms: int = 0
 
 
 class HealthResponse(BaseModel):

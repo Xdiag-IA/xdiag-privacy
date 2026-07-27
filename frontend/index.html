@@ -4,9 +4,15 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0f172a" />
-    <meta name="description" content="Xdiag Privacy, ferramenta local first de anonimizacao visual de documentos medicos brasileiros." />
+    <meta name="theme-color" content="#020617" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="description" content="Xdiag Privacy, ferramenta local first de anonimização visual de documentos médicos brasileiros." />
     <title>Xdiag Privacy</title>
+    <style>
+      /* Pintado antes do React montar: evita o flash branco entre o load do
+         HTML e o primeiro paint do tema. */
+      html, body { margin: 0; height: 100%; background: #020617; }
+    </style>
   </head>
   <body>
     <div id="root"></div>

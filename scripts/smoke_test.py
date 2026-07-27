@@ -40,7 +40,8 @@ def main() -> int:
     pii = get_pii()
     pii.warmup()
 
-    ocr_result = ocr.run(raw, "image/png")
+    ocr_pages = ocr.run(raw, "image/png")
+    ocr_result = ocr_pages[0] if isinstance(ocr_pages, list) else ocr_pages
     pii_entities = pii.detect(ocr_result.text, threshold=0.5)
     blocks = build_ocr_blocks(ocr_result)
     entities = build_entities(pii_entities, ocr_result.lines)

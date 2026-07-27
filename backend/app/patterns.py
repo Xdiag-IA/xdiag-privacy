@@ -585,3 +585,283 @@ def classify_numeric(text: str, e: "PIIEntity") -> "Optional[PIIEntity]":
     if n_digits >= 4:
         return replace(e, label="NUMERO", origin="numeric")
     return None
+
+
+# --- Nomes: ancoragem por rotulo e expansao de span --------------------------
+#
+# Nome nao tem validador de digito verificador nem forma sintatica propria,
+# entao ate aqui dependia 100% do recall do modelo. Duas falhas reais
+# motivaram esta secao:
+#
+#   "Paciente : APARECIDO SILVERIO BORGES" -> o modelo achou so
+#   "SILVERIO BORGES"; o primeiro nome ficou exposto porque "APARECIDO"
+#   tambem e palavra comum do portugues.
+#
+#   "KELLITA DE OLIVEIRA FRAGA FARIA" em cabecalho DICOM -> caixa alta sem
+#   rotulo, o modelo nao emitiu nada.
+#
+# A ancoragem por rotulo resolve o primeiro caso sem depender do modelo; a
+# expansao de span resolve o nome cortado quando o modelo acerta so um
+# pedaco. Ambas sao fail-closed: na duvida, tarjam a mais.
+
+# Conectivos que ficam em minuscula no meio de um nome brasileiro.
+NAME_CONNECTIVES: frozenset[str] = frozenset(
+    {"de", "da", "do", "dos", "das", "e", "del", "di", "du", "van", "von", "der", "la", "le"}
+)
+
+# Titulos e pronomes de tratamento: nao sao PII por si so (o LABEL_REMAP ja
+# dropa PREFIX/TITLE do modelo pelo mesmo motivo). Ficam FORA do span para
+# que o laudo continue legivel: "DRA. [NOME]" em vez de "[NOME]".
+NAME_TITLES: frozenset[str] = frozenset(
+    {"dr", "dra", "drs", "doutor", "doutora", "sr", "sra", "srta",
+     "prof", "profa", "professor", "professora"}
+)
+
+# Rotulo de campo que introduz um nome de pessoa. Tolerante a acento porque
+# a varredura roda sobre o texto cru do OCR, onde os offsets precisam valer.
+_NAME_KEY_RE = re.compile(
+    r"\b(?:"
+    r"pacientes?|pac|nome(?:\s+(?:completo|do\s+paciente|da\s+m[aã]e|social))?|"
+    r"m[eé]dic[oa]|doutor[a]?|dr[a]?|"
+    r"solicitante|requisitante|executante|respons[aá]vel|profissional|"
+    r"examinador[a]?|benefici[aá]ri[oa]|titular|segurad[oa]|"
+    r"m[aã]e|pai|acompanhante"
+    r")\b\.?",
+    re.IGNORECASE,
+)
+
+# Um token alfabetico, com apostrofo interno e ponto final opcional (inicial).
+_NAME_TOKEN_RE = re.compile(r"[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ']*\.?")
+
+# Palavras capitalizadas que aparecem coladas a um nome mas NAO fazem parte
+# dele. Sem esta barreira a expansao produzia
+# "Tereza Cristina Fontes Amaral    Registro" e "Livia Quintela Matos  CRBM".
+# Rotulo de campo seguido de ":" ja e barrado pela regra geral em
+# _followed_by_colon; esta lista cobre o que aparece SEM dois pontos.
+NAME_STOPWORDS: frozenset[str] = frozenset(
+    {
+        # conselhos profissionais
+        "crm", "crmv", "cro", "crf", "crbm", "coren", "crefito", "crn", "crp",
+        "cns", "cnes", "rqe", "uf", "sp", "rj", "mg", "rs", "pr", "ba", "pe",
+        # rotulos e cabecalhos comuns em laudo e ficha
+        "registro", "prontuario", "prontuário", "matricula", "matrícula",
+        "idade", "data", "convenio", "convênio", "plano", "carteirinha",
+        # "nascimento" NAO entra: e sobrenome comum ("JOSE ROBERTO NASCIMENTO
+        # FILHO"). Como rotulo de campo ele sempre vem com dois pontos, e a
+        # regra geral de _followed_by_colon ja o barra sem cortar o sobrenome.
+        "sexo", "telefone", "celular", "email", "endereco",
+        "endereço", "cpf", "rg", "guia", "senha", "leito", "quarto", "setor",
+        "especialidade", "exame", "solicitante", "requisitante", "executante",
+        "responsavel", "responsável", "clinica", "clínica", "hospital",
+        "laboratorio", "laboratório", "unidade", "operadora", "codigo",
+        "código", "assinatura", "carimbo", "obs", "observacoes", "observações",
+    }
+)
+
+
+def _followed_by_colon(text: str, pos: int, limit: int) -> bool:
+    """True se, a partir de `pos`, vem ':' apos espacos opcionais.
+
+    Um token assim e rotulo de campo ("... Amaral   Registro: 20261578"), nao
+    parte do nome. Regra geral: dispensa listar todo rotulo possivel.
+    """
+    while pos < limit and text[pos] in " \t":
+        pos += 1
+    return pos < limit and text[pos] == ":"
+
+
+def _is_name_stopword(tok: str) -> bool:
+    return tok.rstrip(".").casefold() in NAME_STOPWORDS
+
+# Teto de tokens de um nome. "KELLITA DE OLIVEIRA FRAGA FARIA" tem 5; 8 da
+# folga sem deixar a expansao correr solta sobre prosa clinica.
+_NAME_MAX_TOKENS = 8
+
+
+def _is_name_token(tok: str) -> bool:
+    """Token que pode compor um nome proprio.
+
+    Aceita palavra capitalizada, palavra em caixa alta e inicial ("F.").
+    NAO aceita palavra toda minuscula que nao seja conectivo: e o que impede
+    a expansao de engolir prosa clinica ("Apresentando imagem anecoica ..."
+    para em "imagem").
+    """
+    bare = tok.rstrip(".")
+    if not bare:
+        return False
+    if len(bare) == 1:
+        # Inicial so vale com o ponto ("F."), senao qualquer letra solta
+        # de uma tabela viraria nome.
+        return tok.endswith(".") and bare.isalpha() and bare.isupper()
+    if not bare.isalpha():
+        return False
+    if bare.casefold() in NAME_CONNECTIVES:
+        return True
+    return bare.isupper() or bare[0].isupper()
+
+
+def _is_connective(tok: str) -> bool:
+    return tok.rstrip(".").casefold() in NAME_CONNECTIVES
+
+
+def _is_title(tok: str) -> bool:
+    return tok.rstrip(".").casefold() in NAME_TITLES
+
+
+def _line_bounds(text: str, pos: int) -> tuple[int, int]:
+    """Limites da linha que contem `pos`. Nome nunca cruza quebra de linha."""
+    lo = text.rfind("\n", 0, pos) + 1
+    hi = text.find("\n", pos)
+    return lo, (len(text) if hi < 0 else hi)
+
+
+def _name_run_forward(text: str, start: int, limit: int) -> int:
+    """Fim da corrida de tokens de nome a partir de `start`, dentro de `limit`.
+
+    Conectivo nunca encerra o nome nem o termina: "de" so entra se vier
+    outro token de nome depois, senao o span terminaria em "OLIVEIRA DE".
+    """
+    end = start
+    cursor = start
+    tokens = 0
+    while cursor < limit and tokens < _NAME_MAX_TOKENS:
+        m = _NAME_TOKEN_RE.match(text, cursor)
+        if m is None:
+            # pula espacos simples entre tokens; qualquer outra coisa
+            # (digito, dois pontos, virgula) encerra o nome
+            if text[cursor] == " " and cursor + 1 < limit:
+                cursor += 1
+                continue
+            break
+        tok = m.group()
+        if not _is_name_token(tok) or _is_name_stopword(tok):
+            break
+        if _followed_by_colon(text, m.end(), limit):
+            break  # rotulo do proximo campo, nao sobrenome
+        cursor = m.end()
+        tokens += 1
+        if not _is_connective(tok):
+            end = cursor
+    return end
+
+
+def _name_run_backward(text: str, end: int, limit: int) -> int:
+    """Inicio da corrida de tokens de nome terminando em `end`, acima de `limit`."""
+    start = end
+    cursor = end
+    tokens = 0
+    while cursor > limit and tokens < _NAME_MAX_TOKENS:
+        probe = cursor
+        while probe > limit and text[probe - 1] == " ":
+            probe -= 1
+        if probe == cursor and probe > limit and not text[probe - 1].isalpha() \
+                and text[probe - 1] != ".":
+            break
+        tok_end = probe
+        tok_start = probe
+        while tok_start > limit and (
+            text[tok_start - 1].isalpha() or text[tok_start - 1] in "'."
+        ):
+            tok_start -= 1
+        tok = text[tok_start:tok_end]
+        if not tok or not _is_name_token(tok) or _is_title(tok) or _is_name_stopword(tok):
+            break
+        cursor = tok_start
+        tokens += 1
+        if not _is_connective(tok):
+            start = tok_start
+    return start
+
+
+def scan_labeled_names(text: str) -> "list[PIIEntity]":
+    """Nome ancorado em rotulo de campo, independente do modelo.
+
+    "Paciente : APARECIDO SILVERIO BORGES" -> o rotulo e evidencia forte de
+    que o valor a direita e nome de pessoa, entao a entidade nasce com
+    origin="regex" e ignora o threshold, igual a um CPF validado.
+
+    O rotulo e o valor podem estar em linhas diferentes do stream do OCR:
+    numa tabela, PaddleOCR frequentemente devolve "Paciente" e
+    ": APARECIDO ..." como caixas separadas. Por isso a janela cruza no
+    maximo UMA quebra.
+    """
+    from .pii import PIIEntity
+
+    out: list[PIIEntity] = []
+    # Rotulos encadeados ("Medico : DRA. ANA CAROLINA") disparam duas vezes,
+    # pelo campo e pelo tratamento; ambos convergem para o mesmo span.
+    seen: set[tuple[int, int]] = set()
+    for m in _NAME_KEY_RE.finditer(text):
+        cursor = m.end()
+        crossed_newline = False
+        # Consome o separador entre rotulo e valor (": ", " - ", espacos e no
+        # maximo uma quebra de linha).
+        while cursor < len(text) and text[cursor] in " \t:-\n":
+            if text[cursor] == "\n":
+                if crossed_newline:
+                    break
+                crossed_newline = True
+            cursor += 1
+        if cursor >= len(text):
+            continue
+        _, line_end = _line_bounds(text, cursor)
+        # Titulo colado no valor ("Medico: DRA. ANA CAROLINA") fica fora.
+        while True:
+            tm = _NAME_TOKEN_RE.match(text, cursor)
+            if tm is None or not _is_title(tm.group()):
+                break
+            cursor = tm.end()
+            while cursor < line_end and text[cursor] in " \t.":
+                cursor += 1
+        end = _name_run_forward(text, cursor, line_end)
+        if end <= cursor:
+            continue
+        value = text[cursor:end]
+        # Exige pelo menos um token de nome de verdade (2+ letras); um "A"
+        # solto ou um conectivo isolado nao viram entidade.
+        if sum(1 for t in _NAME_TOKEN_RE.findall(value) if len(t.rstrip(".")) >= 2) < 1:
+            continue
+        if (cursor, end) in seen:
+            continue
+        seen.add((cursor, end))
+        out.append(
+            PIIEntity(
+                label="PERSON",
+                text=value,
+                score=0.94,
+                start=cursor,
+                end=end,
+                origin="regex",
+            )
+        )
+    return out
+
+
+def expand_person_span(text: str, e: "PIIEntity") -> "PIIEntity":
+    """Estende um span de PERSON sobre o nome completo ao redor.
+
+    Corrige o caso em que o modelo acerta so um pedaco: achou
+    "SILVERIO BORGES" e deixou "APARECIDO" exposto, ou fatiou
+    "ANA CAROLINA" e "PRUDENTE" em dois spans com "F." no meio.
+
+    Fail-closed com freio: a expansao so atravessa tokens capitalizados, em
+    caixa alta ou conectivos, e nunca cruza quebra de linha.
+    """
+    if e.label.upper() not in {"PERSON", "PATIENT", "PATIENT_NAME", "DOCTOR", "DOCTOR_NAME"}:
+        return e
+    line_start, line_end = _line_bounds(text, e.start)
+    if e.end > line_end:  # span multi-linha: nao mexe
+        return e
+    new_start = _name_run_backward(text, e.start, line_start)
+    new_end = _name_run_forward(text, e.end, line_end)
+    # A corrida para tras pode ter parado dentro do proprio span; o span
+    # original e sempre o piso.
+    new_start = min(new_start, e.start)
+    new_end = max(new_end, e.end)
+    while new_end > new_start and text[new_end - 1] in " \t":
+        new_end -= 1
+    while new_start < new_end and text[new_start] in " \t":
+        new_start += 1
+    if (new_start, new_end) == (e.start, e.end):
+        return e
+    return replace(e, start=new_start, end=new_end, text=text[new_start:new_end])

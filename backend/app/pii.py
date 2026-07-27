@@ -144,8 +144,8 @@ LABEL_PLACEHOLDER: dict[str, str] = {
     "PERSON": "[NOME]",
     "PATIENT": "[NOME]",
     "PATIENT_NAME": "[NOME]",
-    "DOCTOR": "[MEDICO]",
-    "DOCTOR_NAME": "[MEDICO]",
+    "DOCTOR": "[MÉDICO]",
+    "DOCTOR_NAME": "[MÉDICO]",
     "PROFESSIONAL": "[PROFISSIONAL]",
     "DATE": "[DATA]",
     "DATE_OF_BIRTH": "[DATA_NASC]",
@@ -154,17 +154,17 @@ LABEL_PLACEHOLDER: dict[str, str] = {
     "PHONE": "[TELEFONE]",
     "PHONE_NUMBER": "[TELEFONE]",
     "EMAIL": "[EMAIL]",
-    "ADDRESS": "[ENDERECO]",
-    "STREET_ADDRESS": "[ENDERECO]",
+    "ADDRESS": "[ENDEREÇO]",
+    "STREET_ADDRESS": "[ENDEREÇO]",
     "CITY": "[CIDADE]",
     "STATE": "[UF]",
     "ZIP": "[CEP]",
     "ZIPCODE": "[CEP]",
     "POSTAL_CODE": "[CEP]",
     "ID": "[ID]",
-    "MEDICAL_RECORD": "[PRONTUARIO]",
-    "MEDICAL_RECORD_NUMBER": "[PRONTUARIO]",
-    "MRN": "[PRONTUARIO]",
+    "MEDICAL_RECORD": "[PRONTUÁRIO]",
+    "MEDICAL_RECORD_NUMBER": "[PRONTUÁRIO]",
+    "MRN": "[PRONTUÁRIO]",
     "CRM": "[CRM]",
     "CNS": "[CNS]",
     "CNES": "[CNES]",
@@ -173,64 +173,86 @@ LABEL_PLACEHOLDER: dict[str, str] = {
     "TISS_GUIDE": "[GUIA]",
     "TISS_AUTH": "[SENHA]",
     "INSURANCE_ID": "[CARTEIRINHA]",
-    "NUMERO": "[NUMERO]",
-    "INSTITUTION": "[INSTITUICAO]",
-    "HOSPITAL": "[INSTITUICAO]",
-    "ORGANIZATION": "[INSTITUICAO]",
+    "NUMERO": "[NÚMERO]",
+    "INSTITUTION": "[INSTITUIÇÃO]",
+    "HOSPITAL": "[INSTITUIÇÃO]",
+    "ORGANIZATION": "[INSTITUIÇÃO]",
     "URL": "[URL]",
     "IP": "[IP]",
 }
 
+# Paleta por FAMILIA de dado, espelhada em frontend/src/labels.ts.
+# Um tom por familia, escolhido para ter contraste sobre papel branco. A versao
+# anterior tinha 40 tons, varios separados por um unico passo de luminancia
+# (#4f46e5 / #4338ca / #3730a3), indistinguiveis sobre o documento. Vermelho
+# puro saiu da paleta: fica reservado para risco na interface (entidade nao
+# mapeada, erro), para o alerta nao competir com a cor de uma categoria.
+FAMILY_PACIENTE = "#db2777"  # rosa: nome de pessoa / paciente
+FAMILY_PROFISSIONAL = "#be185d"  # rosa escuro: medico ou profissional
+FAMILY_DOCUMENTO = "#ea580c"  # laranja: documento oficial (CPF, CNPJ, RG, CNS)
+FAMILY_REGISTRO = "#4f46e5"  # indigo: prontuario e identificadores internos
+FAMILY_CONTATO = "#16a34a"  # verde: telefone e email
+FAMILY_ENDERECO = "#7c3aed"  # violeta: endereco, cidade, UF, CEP
+FAMILY_TEMPORAL = "#2563eb"  # azul: datas e idade
+FAMILY_CONSELHO = "#0d9488"  # teal: CRM, RQE, COREN
+FAMILY_INSTITUICAO = "#475569"  # ardosia: hospital, clinica, CNES
+FAMILY_CONVENIO = "#a16207"  # ouro escuro: guia, autorizacao, carteirinha
+FAMILY_REDE = "#0369a1"  # azul profundo: URL e IP
+FAMILY_SUSPEITO = "#78716c"  # pedra: numero suspeito nao classificado
+FAMILY_MANUAL = "#f59e0b"  # ambar: area marcada a mao pelo operador
+FAMILY_OUTRO = "#c026d3"  # fucsia: rotulo desconhecido, ainda assim tarjado
+
 LABEL_COLOR: dict[str, str] = {
-    "BR_DOC": "#dc2626",
-    "BR_CPF": "#dc2626",
-    "CPF": "#dc2626",
-    "BR_CNPJ": "#ea580c",
-    "CNPJ": "#ea580c",
-    "BR_RG": "#d97706",
-    "RG": "#d97706",
-    "PERSON": "#f43f5e",
-    "PATIENT": "#f43f5e",
-    "PATIENT_NAME": "#f43f5e",
-    "DOCTOR": "#be185d",
-    "DOCTOR_NAME": "#be185d",
-    "PROFESSIONAL": "#db2777",
-    "DATE": "#2563eb",
-    "DATE_OF_BIRTH": "#1d4ed8",
-    "DOB": "#1d4ed8",
-    "AGE": "#0891b2",
-    "PHONE": "#16a34a",
-    "PHONE_NUMBER": "#16a34a",
-    "EMAIL": "#0d9488",
-    "ADDRESS": "#9333ea",
-    "STREET_ADDRESS": "#9333ea",
-    "CITY": "#7c3aed",
-    "STATE": "#6d28d9",
-    "ZIP": "#4f46e5",
-    "ZIPCODE": "#4f46e5",
-    "POSTAL_CODE": "#4f46e5",
-    "ID": "#4338ca",
-    "MEDICAL_RECORD": "#3730a3",
-    "MEDICAL_RECORD_NUMBER": "#3730a3",
-    "MRN": "#3730a3",
-    "CRM": "#db2777",
-    "CNS": "#b91c1c",
-    "CNES": "#64748b",
-    "RQE": "#c026d3",
-    "COREN": "#a21caf",
-    "TISS_GUIDE": "#0e7490",
-    "TISS_AUTH": "#b45309",
-    "INSURANCE_ID": "#ca8a04",
-    "NUMERO": "#78716c",
-    "INSTITUTION": "#475569",
-    "HOSPITAL": "#475569",
-    "ORGANIZATION": "#475569",
-    "URL": "#0369a1",
-    "IP": "#075985",
+    "BR_DOC": FAMILY_DOCUMENTO,
+    "BR_CPF": FAMILY_DOCUMENTO,
+    "CPF": FAMILY_DOCUMENTO,
+    "BR_CNPJ": FAMILY_DOCUMENTO,
+    "CNPJ": FAMILY_DOCUMENTO,
+    "BR_RG": FAMILY_DOCUMENTO,
+    "RG": FAMILY_DOCUMENTO,
+    "CNS": FAMILY_DOCUMENTO,
+    "PERSON": FAMILY_PACIENTE,
+    "PATIENT": FAMILY_PACIENTE,
+    "PATIENT_NAME": FAMILY_PACIENTE,
+    "DOCTOR": FAMILY_PROFISSIONAL,
+    "DOCTOR_NAME": FAMILY_PROFISSIONAL,
+    "PROFESSIONAL": FAMILY_PROFISSIONAL,
+    "DATE": FAMILY_TEMPORAL,
+    "DATE_OF_BIRTH": FAMILY_TEMPORAL,
+    "DOB": FAMILY_TEMPORAL,
+    "AGE": FAMILY_TEMPORAL,
+    "PHONE": FAMILY_CONTATO,
+    "PHONE_NUMBER": FAMILY_CONTATO,
+    "EMAIL": FAMILY_CONTATO,
+    "ADDRESS": FAMILY_ENDERECO,
+    "STREET_ADDRESS": FAMILY_ENDERECO,
+    "CITY": FAMILY_ENDERECO,
+    "STATE": FAMILY_ENDERECO,
+    "ZIP": FAMILY_ENDERECO,
+    "ZIPCODE": FAMILY_ENDERECO,
+    "POSTAL_CODE": FAMILY_ENDERECO,
+    "ID": FAMILY_REGISTRO,
+    "MEDICAL_RECORD": FAMILY_REGISTRO,
+    "MEDICAL_RECORD_NUMBER": FAMILY_REGISTRO,
+    "MRN": FAMILY_REGISTRO,
+    "CRM": FAMILY_CONSELHO,
+    "RQE": FAMILY_CONSELHO,
+    "COREN": FAMILY_CONSELHO,
+    "CNES": FAMILY_INSTITUICAO,
+    "INSTITUTION": FAMILY_INSTITUICAO,
+    "HOSPITAL": FAMILY_INSTITUICAO,
+    "ORGANIZATION": FAMILY_INSTITUICAO,
+    "TISS_GUIDE": FAMILY_CONVENIO,
+    "TISS_AUTH": FAMILY_CONVENIO,
+    "INSURANCE_ID": FAMILY_CONVENIO,
+    "URL": FAMILY_REDE,
+    "IP": FAMILY_REDE,
+    "NUMERO": FAMILY_SUSPEITO,
+    "MANUAL": FAMILY_MANUAL,
 }
 
 DEFAULT_PLACEHOLDER = "[REDACTED]"
-DEFAULT_COLOR = "#dc2626"
+DEFAULT_COLOR = FAMILY_OUTRO
 
 
 def label_placeholder(label: str) -> str:
@@ -344,7 +366,100 @@ class PIIEngine:
                 if ent is None or ent.score < floor:
                     continue
                 model_entities.append(ent)
+
+        if self.settings.caps_retry:
+            model_entities.extend(self._caps_retry(text, model_entities, floor))
+
         return self._pipeline(model_entities, text, threshold)
+
+    # Labels que contam como "nome ja encontrado" na linha ao decidir se vale
+    # a segunda passada em caixa alta.
+    _NAME_LABELS = frozenset({"PERSON", "PATIENT", "PATIENT_NAME", "DOCTOR", "DOCTOR_NAME"})
+
+    def _caps_retry(
+        self, text: str, found: list[PIIEntity], floor: float
+    ) -> list[PIIEntity]:
+        """Segunda passada do modelo sobre linhas em CAIXA ALTA.
+
+        O OpenMed (como todo classificador de tokens da familia BERT) foi
+        treinado majoritariamente em texto com capitalizacao natural. Uma
+        linha como "KELLITA DE OLIVEIRA FRAGA FARIA", tipica de cabecalho
+        DICOM, se quebra em subpalavras que o modelo praticamente nao viu
+        como nome de pessoa, e o score desaba a ponto de nem passar do piso
+        de coleta. Na MESMA imagem, "Dr. Massuca", em caixa mista, sai a
+        0.80: a diferenca e a forma do texto, nao a competencia do modelo.
+
+        A sonda reapresenta apenas as linhas suspeitas em Title Case. O
+        str.title() preserva o comprimento caractere a caractere, entao os
+        offsets do resultado voltam para o texto original sem reancoragem.
+        So entidades de nome sao aproveitadas: o resto do documento ja foi
+        visto pela passada normal, e reimportar numeros daqui so geraria
+        duplicata.
+        """
+        if self._pipe is None:
+            return []
+
+        covered: list[tuple[int, int]] = [
+            (e.start, e.end) for e in found if e.label.upper() in self._NAME_LABELS
+        ]
+
+        probe_parts: list[str] = []
+        offsets: list[tuple[int, int]] = []  # (inicio na sonda, inicio no original)
+        cursor = 0
+        line_start = 0
+        for line in text.split("\n"):
+            line_end = line_start + len(line)
+            if self._is_caps_candidate(line) and not any(
+                s < line_end and e > line_start for s, e in covered
+            ):
+                probe_parts.append(line.title())
+                offsets.append((cursor, line_start))
+                cursor += len(line) + 1
+            line_start = line_end + 1
+
+        if not probe_parts:
+            return []
+
+        probe = "\n".join(probe_parts)
+        with self._lock:
+            results = self._pipe(probe)
+
+        out: list[PIIEntity] = []
+        for r in results or []:
+            ent = self._normalize_hf_entity(r, 0)
+            if ent is None or ent.score < floor:
+                continue
+            if ent.label.upper() not in self._NAME_LABELS:
+                continue
+            # Traduz o offset da sonda de volta para o texto original.
+            base = None
+            for probe_off, orig_off in offsets:
+                if ent.start >= probe_off:
+                    base = (probe_off, orig_off)
+                else:
+                    break
+            if base is None:
+                continue
+            delta = base[1] - base[0]
+            out.append(
+                replace(ent, start=ent.start + delta, end=ent.end + delta,
+                        text=text[ent.start + delta : ent.end + delta])
+            )
+        if out:
+            logger.info("caps retry recuperou %d nome(s) em caixa alta", len(out))
+        return out
+
+    @staticmethod
+    def _is_caps_candidate(line: str) -> bool:
+        """Linha com cara de nome em caixa alta: >=2 palavras, >=70% maiuscula."""
+        words = [w for w in re.findall(r"[A-Za-zÀ-ÖØ-öø-ÿ]{2,}", line)]
+        if len(words) < 2:
+            return False
+        letters = [c for c in line if c.isalpha()]
+        if len(letters) < 6:
+            return False
+        upper = sum(1 for c in letters if c.isupper())
+        return upper / len(letters) >= 0.70
 
     @staticmethod
     def _chunk_text(text: str, max_chars: int) -> list[tuple[int, str]]:
@@ -404,7 +519,7 @@ class PIIEngine:
            forte; entidade validada sobrevive SEMPRE, em qualquer score;
         8. containment e disjuncao final (spans estritamente disjuntos).
         """
-        regex_entities = patterns.scan_text(text)
+        regex_entities = patterns.scan_text(text) + patterns.scan_labeled_names(text)
 
         snapped: list[PIIEntity] = []
         for e in model_entities:
@@ -459,6 +574,13 @@ class PIIEngine:
                 ce = patterns.classify_numeric(text, e)
                 if ce is not None:
                     kept.append(ce)
+
+        # Expansao de nome DEPOIS do threshold: so vale a pena completar o
+        # nome de quem sobreviveu. Um span que ganhou "APARECIDO" a esquerda
+        # pode passar a conter o vizinho, e o containment de
+        # finalize_disjoint colapsa os dois numa tarja unica.
+        kept = [patterns.expand_person_span(text, e) for e in kept]
+
         return patterns.finalize_disjoint(kept, text)
 
     @staticmethod

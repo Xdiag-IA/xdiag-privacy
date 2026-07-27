@@ -34,16 +34,22 @@ export interface Stats {
   unmapped: number;
 }
 
-export interface RedactResponse {
+export interface PageResult {
+  page_index: number;
   image_dimensions: ImageDimensions;
   ocr_blocks: OCRBlock[];
   entities: Entity[];
   deidentified_text: string;
+  original_text?: string | null;
+  rendered_image_data_url: string;
+}
+
+export interface RedactResponse {
+  pages: PageResult[];
+  page_count: number;
   stats: Stats;
   is_synthetic: boolean;
-  original_text?: string | null;
   elapsed_ms: number;
-  rendered_image_data_url?: string;
 }
 
 export interface HealthResponse {

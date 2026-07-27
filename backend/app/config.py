@@ -60,12 +60,25 @@ class Settings:
     pii_aggregation: str = "simple"
     pii_max_input_chars: int = 8000  # safe ceiling per chunk
 
+    # Segunda passada do modelo sobre linhas em CAIXA ALTA (Title Case).
+    # Recupera nome de cabecalho DICOM, que o modelo perde por capitalizacao.
+    caps_retry: bool = True
+
+    # Mapeamento de span de caractere para bbox de pixel. A folga e
+    # fail-closed: tarja de menos deixa letra visivel na imagem exportada,
+    # tarja de mais so cobre um caractere vizinho.
+    bbox_pad_chars: float = 0.6  # folga lateral, em larguras de caractere
+    bbox_pad_lines: float = 0.08  # folga vertical, em fracao da altura da linha
+
     # Pipeline
     confidence_default: float = 0.5
     # Piso de coleta do modelo: tudo acima disso entra no pipeline e passa
     # por snap e validacao ANTES do corte pelo threshold do usuario.
     pii_score_floor: float = 0.15
     max_upload_bytes: int = 20 * 1024 * 1024  # 20MB
+    # Limite de paginas de PDF: acima disso a API responde 422 explicito.
+    # Nunca processar em silencio apenas parte do documento.
+    max_pdf_pages: int = 20
 
     # Storage
     samples_dir: Path = field(default_factory=lambda: Path("/app/samples"))
@@ -103,9 +116,13 @@ class Settings:
             pii_device=_int(os.getenv("XDIAG_PII_DEVICE"), -1),
             pii_aggregation=os.getenv("XDIAG_PII_AGGREGATION", "simple"),
             pii_max_input_chars=_int(os.getenv("XDIAG_PII_MAX_CHARS"), 8000),
+            caps_retry=_bool(os.getenv("XDIAG_CAPS_RETRY"), True),
+            bbox_pad_chars=_float(os.getenv("XDIAG_BBOX_PAD_CHARS"), 0.6),
+            bbox_pad_lines=_float(os.getenv("XDIAG_BBOX_PAD_LINES"), 0.08),
             confidence_default=_float(os.getenv("XDIAG_CONFIDENCE"), 0.5),
             pii_score_floor=_float(os.getenv("XDIAG_PII_SCORE_FLOOR"), 0.15),
             max_upload_bytes=_int(os.getenv("XDIAG_MAX_UPLOAD"), 20 * 1024 * 1024),
+            max_pdf_pages=_int(os.getenv("XDIAG_MAX_PDF_PAGES"), 20),
             samples_dir=Path(os.getenv("XDIAG_SAMPLES_DIR", "/app/samples")),
             cache_dir=Path(os.getenv("XDIAG_CACHE_DIR", "/app/.cache")),
             mock_mode=_bool(os.getenv("XDIAG_MOCK"), False),

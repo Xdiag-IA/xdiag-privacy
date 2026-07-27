@@ -2,6 +2,15 @@
   "compilerOptions": {
     "composite": true,
     "skipLibCheck": true,
+    // Sem outDir o `tsc -b` emite vite.config.js ao lado do vite.config.ts, e
+    // o Vite resolve o .js primeiro: a config passaria a ser um artefato de
+    // build congelado em vez do fonte. "noEmit" nao serve aqui, TypeScript
+    // proibe desligar emit em projeto referenciado composto (TS6310), entao a
+    // saida vai para fora da arvore de fontes.
+    "outDir": "./node_modules/.tmp/tsconfig.node",
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    "target": "ES2022",
+    "lib": ["ES2022"],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,

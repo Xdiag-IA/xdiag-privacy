@@ -32,9 +32,11 @@ from .models import (
     ImageDimensions,
     LabelInfo,
     LabelsResponse,
+    PageResult,
     RedactResponse,
     Stats,
 )
+from .ocr import PageLimitExceeded
 
 logger = logging.getLogger("xdiag.redact")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -140,46 +142,61 @@ def create_app() -> FastAPI:
         pii_engine = pii_mod.get_engine()
 
         try:
-            ocr_result = ocr_engine.run(body, file.content_type or "image/png")
+            ocr_results = ocr_engine.run(body, file.content_type or "image/png")
+        except PageLimitExceeded as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         except Exception as exc:
             logger.exception("OCR failed")
             raise HTTPException(status_code=500, detail=f"OCR failure: {exc}") from exc
 
-        try:
-            pii_entities = pii_engine.detect(ocr_result.text, threshold=threshold)
-        except Exception as exc:
-            logger.exception("PII detection failed")
-            raise HTTPException(status_code=500, detail=f"PII failure: {exc}") from exc
+        pages: list[PageResult] = []
+        all_entities = []
+        for page_index, ocr_result in enumerate(ocr_results):
+            try:
+                pii_entities = pii_engine.detect(ocr_result.text, threshold=threshold)
+            except Exception as exc:
+                logger.exception("PII detection failed (page %d)", page_index)
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"PII failure na página {page_index + 1}: {exc}",
+                ) from exc
 
-        ocr_blocks = build_ocr_blocks(ocr_result)
-        entities = build_entities(pii_entities, ocr_result.lines)
-        deident = deidentify_text(ocr_result.text, pii_entities)
+            entities = build_entities(pii_entities, ocr_result.lines)
+            all_entities.extend(entities)
+            rendered_data_url = ""
+            if ocr_result.image_png:
+                rendered_data_url = (
+                    "data:image/png;base64,"
+                    + base64.b64encode(ocr_result.image_png).decode("ascii")
+                )
+            pages.append(
+                PageResult(
+                    page_index=page_index,
+                    image_dimensions=ImageDimensions(
+                        w=ocr_result.width, h=ocr_result.height
+                    ),
+                    ocr_blocks=build_ocr_blocks(ocr_result),
+                    entities=entities,
+                    deidentified_text=deidentify_text(ocr_result.text, pii_entities),
+                    original_text=ocr_result.text if reveal else None,
+                    rendered_image_data_url=rendered_data_url,
+                )
+            )
 
         elapsed = int((time.time() - started) * 1000)
 
-        rendered_data_url = ""
-        if ocr_result.image_png:
-            rendered_data_url = (
-                "data:image/png;base64,"
-                + base64.b64encode(ocr_result.image_png).decode("ascii")
-            )
-
         return RedactResponse(
-            image_dimensions=ImageDimensions(w=ocr_result.width, h=ocr_result.height),
-            ocr_blocks=ocr_blocks,
-            entities=entities,
-            deidentified_text=deident,
+            pages=pages,
+            page_count=len(pages),
             stats=Stats(
-                total_entities=len(entities),
-                by_label=stats_by_label(entities),
-                unmapped=sum(1 for e in entities if e.unmapped),
+                total_entities=len(all_entities),
+                by_label=stats_by_label(all_entities),
+                unmapped=sum(1 for e in all_entities if e.unmapped),
             ),
             is_synthetic=is_synthetic,
-            original_text=ocr_result.text if reveal else None,
             elapsed_ms=elapsed,
-            rendered_image_data_url=rendered_data_url,
         )
 
     @app.exception_handler(Exception)

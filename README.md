@@ -92,28 +92,41 @@ xdiag-redact/
   - `is_synthetic=true` marca o arquivo como sintetico (apenas metadado,
     o frontend usa para renderizar a marca dagua)
 
-Resposta:
+Resposta (uma entrada em `pages` por pagina do documento; PDFs sao
+processados por inteiro, ate `XDIAG_MAX_PDF_PAGES` paginas, acima disso a
+API retorna 422 explicito, nunca processa parcialmente em silencio):
 
 ```json
 {
-  "image_dimensions": { "w": 1240, "h": 1754 },
-  "ocr_blocks": [{ "text": "...", "bbox": [[x,y], ...], "confidence": 0.99, "char_start": 0, "char_end": 23 }],
-  "entities": [
+  "pages": [
     {
-      "label": "BR_CPF",
-      "text": "529.982.247-25",
-      "score": 0.99,
-      "char_span": [142, 156],
-      "bboxes": [[[x1,y1],[x2,y2],[x3,y3],[x4,y4]]],
-      "redacted": "[CPF]"
+      "page_index": 0,
+      "image_dimensions": { "w": 1240, "h": 1754 },
+      "ocr_blocks": [{ "text": "...", "bbox": [[x,y], ...], "confidence": 0.99, "char_start": 0, "char_end": 23 }],
+      "entities": [
+        {
+          "label": "BR_CPF",
+          "text": "529.982.247-25",
+          "score": 0.99,
+          "char_span": [142, 156],
+          "bboxes": [[[x1,y1],[x2,y2],[x3,y3],[x4,y4]]],
+          "redacted": "[CPF]",
+          "unmapped": false
+        }
+      ],
+      "deidentified_text": "...",
+      "rendered_image_data_url": "data:image/png;base64,..."
     }
   ],
-  "deidentified_text": "...",
-  "stats": { "total_entities": 11, "by_label": { "BR_CPF": 1 } },
+  "page_count": 1,
+  "stats": { "total_entities": 11, "by_label": { "BR_CPF": 1 }, "unmapped": 0 },
   "is_synthetic": false,
   "elapsed_ms": 3214
 }
 ```
+
+Entidade com `unmapped: true` foi detectada no texto mas nao tem regiao
+mapeada na imagem; o frontend bloqueia o export ate a revisao.
 
 ## Gerando os samples sinteticos
 

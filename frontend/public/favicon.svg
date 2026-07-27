@@ -1,5 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
-  <rect width="64" height="64" rx="12" fill="#0f172a"/>
-  <path d="M16 18 L32 44 L48 18" stroke="#dc2626" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="32" cy="50" r="3" fill="#f8fafc"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="xp-x" x1="12" y1="10" x2="52" y2="54" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7dedfb"/>
+      <stop offset=".52" stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#0891b2"/>
+    </linearGradient>
+    <linearGradient id="xp-plate" x1="8" y1="26" x2="56" y2="39" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0c1c30"/>
+      <stop offset="1" stop-color="#050f1d"/>
+    </linearGradient>
+    <linearGradient id="xp-tile" x1="4" y1="0" x2="60" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0d1c30"/>
+      <stop offset="1" stop-color="#030a16"/>
+    </linearGradient>
+    <radialGradient id="xp-soft" cx=".5" cy=".38" r=".62">
+      <stop offset="0" stop-color="#22d3ee" stop-opacity=".26"/>
+      <stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="url(#xp-tile)"/>
+  <rect width="64" height="64" rx="15" fill="url(#xp-soft)"/>
+  <rect x=".75" y=".75" width="62.5" height="62.5" rx="14.25" fill="none" stroke="#22d3ee" stroke-opacity=".22" stroke-width="1.5"/>
+  <g stroke="url(#xp-x)" stroke-width="8.4" stroke-linecap="round" fill="none">
+    <path d="M15.5 14.5 L48.5 49.5"/>
+    <path d="M48.5 14.5 L15.5 49.5"/>
+  </g>
+  <rect x="9" y="26.6" width="46" height="10.8" rx="5.4" fill="url(#xp-plate)" stroke="#22d3ee" stroke-opacity=".9" stroke-width="1.7"/>
 </svg>
