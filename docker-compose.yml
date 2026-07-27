@@ -1,0 +1,66 @@
+# Xdiag.Redact local stack.
+#
+# Two services, no external dependencies at runtime. The api container
+# downloads PaddleOCR and OpenMed weights on first request and caches them
+# under /app/.cache, persisted via a named volume so subsequent boots are
+# offline. Set XDIAG_MOCK=1 to skip model downloads entirely (useful for
+# pipeline smoke tests on machines without enough disk).
+
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: xdiag/redact-api:0.1.0
+    container_name: xdiag-redact-api
+    environment:
+      XDIAG_HOST: 0.0.0.0
+      XDIAG_PORT: 8000
+      XDIAG_OCR_LANG: pt
+      XDIAG_OCR_USE_GPU: "0"
+      XDIAG_PII_MODEL: OpenMed/OpenMed-PII-Portuguese-SnowflakeMed-Large-568M-v1
+      XDIAG_PII_DEVICE: -1
+      XDIAG_CONFIDENCE: "0.5"
+      XDIAG_MAX_UPLOAD: "20971520"
+      XDIAG_EAGER_LOAD: "1"
+      XDIAG_MOCK: "${XDIAG_MOCK:-0}"
+      XDIAG_CORS_ORIGINS: "http://localhost:5173,http://localhost:4173,http://web:5173"
+    ports:
+      - "8800:8000"
+    volumes:
+      - ./samples:/app/samples:ro
+      - xdiag-models:/app/.cache
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 180s
+      retries: 3
+    networks:
+      - xdiag
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: xdiag/redact-web:0.1.0
+    container_name: xdiag-redact-web
+    environment:
+      VITE_API_BASE_URL: "http://localhost:8800"
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+    restart: unless-stopped
+    networks:
+      - xdiag
+
+volumes:
+  xdiag-models:
+    name: xdiag-redact-models
+
+networks:
+  xdiag:
+    name: xdiag-redact-net
+    driver: bridge

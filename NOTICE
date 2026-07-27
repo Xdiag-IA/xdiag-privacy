@@ -1,0 +1,20 @@
+Xdiag.Redact
+Copyright 2026 Xdiag Tecnologias
+
+This product includes software developed by:
+
+OpenMed (https://huggingface.co/OpenMed)
+   Modelo OpenMed-PII-Portuguese-SnowflakeMed-Large-568M-v1
+   Apache License 2.0
+
+PaddlePaddle / PaddleOCR (https://github.com/PaddlePaddle/PaddleOCR)
+   Apache License 2.0
+
+Hugging Face Transformers (https://github.com/huggingface/transformers)
+   Apache License 2.0
+
+FastAPI (https://github.com/fastapi/fastapi)
+   MIT License
+
+Chakra UI (https://chakra-ui.com)
+   MIT License
