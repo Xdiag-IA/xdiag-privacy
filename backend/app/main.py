@@ -1,4 +1,4 @@
-"""FastAPI entrypoint for Xdiag.Redact.
+"""FastAPI entrypoint for Xdiag Privacy.
 
 Exposes three endpoints:
   GET  /api/health   liveness plus model load status

@@ -1,4 +1,4 @@
-# Xdiag.Redact local stack.
+# Xdiag Privacy local stack.
 #
 # Two services, no external dependencies at runtime. The api container
 # downloads PaddleOCR and OpenMed weights on first request and caches them
@@ -11,8 +11,8 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    image: xdiag/redact-api:0.1.0
-    container_name: xdiag-redact-api
+    image: xdiag/privacy-api:0.1.0
+    container_name: xdiag-privacy-api
     environment:
       XDIAG_HOST: 0.0.0.0
       XDIAG_PORT: 8000
@@ -44,8 +44,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    image: xdiag/redact-web:0.1.0
-    container_name: xdiag-redact-web
+    image: xdiag/privacy-web:0.1.0
+    container_name: xdiag-privacy-web
     environment:
       VITE_API_BASE_URL: "http://localhost:8800"
     ports:
@@ -58,9 +58,11 @@ services:
 
 volumes:
   xdiag-models:
+    # O nome herdado xdiag-redact-models e mantido de proposito: renomear o
+    # volume descartaria o cache de ~700MB de modelos ja baixados.
     name: xdiag-redact-models
 
 networks:
   xdiag:
-    name: xdiag-redact-net
+    name: xdiag-privacy-net
     driver: bridge

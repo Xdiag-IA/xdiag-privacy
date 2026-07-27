@@ -1,4 +1,4 @@
-# Backend image for Xdiag.Redact.
+# Backend image for Xdiag Privacy.
 #
 # Notes:
 #  1. Uses the slim Python base, then layers system libs needed by PaddleOCR

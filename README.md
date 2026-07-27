@@ -1,4 +1,4 @@
-# Xdiag.Redact
+# Xdiag Privacy
 
 Demonstrador local first de anonimizacao visual de documentos medicos
 brasileiros. Roda 100 por cento offline apos a primeira inicializacao,
@@ -138,7 +138,7 @@ suba o stack e observe o trafego:
 
 ```bash
 docker compose up -d
-docker run --rm --net=container:xdiag-redact-api nicolaka/netshoot \
+docker run --rm --net=container:xdiag-privacy-api nicolaka/netshoot \
   tcpdump -nn -i any not port 8000
 ```
 

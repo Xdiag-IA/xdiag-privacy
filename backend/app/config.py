@@ -1,4 +1,4 @@
-"""Runtime configuration for Xdiag.Redact backend.
+"""Runtime configuration for the Xdiag Privacy backend.
 
 All settings are environment driven so the same image runs on CPU dev boxes,
 GPU servers, and CI without code changes. Defaults are tuned for the local
@@ -37,7 +37,7 @@ def _float(val: str | None, default: float) -> float:
 class Settings:
     """Process wide configuration."""
 
-    app_name: str = "Xdiag.Redact"
+    app_name: str = "Xdiag Privacy"
     app_version: str = "0.1.0"
 
     # Networking

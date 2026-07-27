@@ -33,7 +33,7 @@ function XdiagLogo() {
       </Box>
       <Box lineHeight="1.1">
         <Text fontSize="md" fontWeight={700} color="slate.50" letterSpacing="-0.01em">
-          Xdiag.Redact
+          Xdiag Privacy
         </Text>
         <Text fontSize="xs" color="slate.400">
           Privacy Filter Tracking
