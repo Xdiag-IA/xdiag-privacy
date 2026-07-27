@@ -1,0 +1,350 @@
+{
+  "schema_version": 1,
+  "doc_id": "ficha_admissao_14",
+  "doc_type": "ficha_admissao",
+  "image": "ficha_admissao_14.png",
+  "generator": {
+    "seed": 42,
+    "script_version": "2"
+  },
+  "page": {
+    "width": 1240,
+    "height": 1754,
+    "canonical_text": "Xdiag\nHospital Sintetico Xdiag\nCNPJ: 33.444.555/0001-81\nFICHA DE ADMISSAO HOSPITALAR\nDocumento sintetico para teste, dados ficticios\nNumero do prontuario: 2026-004-887       Atendimento: 778991\nDADOS DO PACIENTE\nNome: Carlos Eduardo Marques de Oliveira\nCPF: 111.444.777-35              RG: 22.333.444-5 SSP/RJ\nData de nascimento: 04/07/1968               Idade: 57 anos\nSexo: Masculino                  Cor declarada: parda\nNaturalidade: Niteroi, RJ        Nacionalidade: brasileira\nTelefone: (21) 99876-5432        Email: carlos.marques@example.com\nEndereco: Av. Atlantica, 4567, ap 301, Copacabana, Rio de Janeiro, RJ, CEP 22070-002\nRESPONSAVEL / CONTATO DE EMERGENCIA\nNome: Beatriz Marques de Oliveira          Parentesco: filha\nTelefone: (21) 98123-4567         CPF: 935.411.347-80\nDADOS CLINICOS\nData de admissao: 22/04/2026  Hora: 14:35     Origem: Pronto Socorro\nQueixa principal: dor toracica retroesternal de inicio ha 2 horas.\nPressao arterial: 150 x 90 mmHg     Frequencia cardiaca: 96 bpm\nSaturacao: 96 por cento     Temperatura: 36.7 graus Celsius\nAntecedentes: hipertensao, dislipidemia, ex tabagista.\nAlergia conhecida: dipirona.\nEQUIPE\nMedico admissor: Dra. Patricia Souza Lima\nCRM/RJ 098765                Especialidade: Cardiologia\nEnfermeira: Fernanda Castro       COREN/RJ 234567\nEmail do plantao: plantao.cardio@example.com\nRio de Janeiro, 22/04/2026",
+    "spans": [
+      {
+        "id": "s02",
+        "label": "PRONTUARIO",
+        "group": "DOC_NUM",
+        "text": "2026-004-887",
+        "char_start": 155,
+        "char_end": 167,
+        "bbox_px": [
+          279,
+          262,
+          395,
+          283
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s03",
+        "label": "ATENDIMENTO",
+        "group": "DOC_NUM",
+        "text": "778991",
+        "char_start": 187,
+        "char_end": 193,
+        "bbox_px": [
+          547,
+          262,
+          611,
+          283
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s04",
+        "label": "PATIENT_NAME",
+        "group": "NAME",
+        "text": "Carlos Eduardo Marques de Oliveira",
+        "char_start": 218,
+        "char_end": 252,
+        "bbox_px": [
+          139,
+          324,
+          453,
+          345
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s05",
+        "label": "CPF",
+        "group": "DOC_NUM",
+        "text": "111.444.777-35",
+        "char_start": 258,
+        "char_end": 272,
+        "bbox_px": [
+          129,
+          352,
+          273,
+          371
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s06",
+        "label": "RG",
+        "group": "DOC_NUM",
+        "text": "22.333.444-5",
+        "char_start": 290,
+        "char_end": 302,
+        "bbox_px": [
+          394,
+          352,
+          517,
+          371
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s07",
+        "label": "DATE_OF_BIRTH",
+        "group": "DATE",
+        "text": "04/07/1968",
+        "char_start": 330,
+        "char_end": 340,
+        "bbox_px": [
+          268,
+          380,
+          372,
+          399
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s08",
+        "label": "AGE",
+        "group": "AGE",
+        "text": "57 anos",
+        "char_start": 362,
+        "char_end": 369,
+        "bbox_px": [
+          520,
+          380,
+          595,
+          399
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s09",
+        "label": "PHONE",
+        "group": "CONTACT",
+        "text": "(21) 99876-5432",
+        "char_start": 493,
+        "char_end": 508,
+        "bbox_px": [
+          166,
+          464,
+          319,
+          487
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s10",
+        "label": "EMAIL",
+        "group": "CONTACT",
+        "text": "carlos.marques@example.com",
+        "char_start": 523,
+        "char_end": 549,
+        "bbox_px": [
+          423,
+          464,
+          704,
+          487
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s11",
+        "label": "ADDRESS",
+        "group": "LOCATION",
+        "text": "Av. Atlantica, 4567, ap 301, Copacabana, Rio de Janeiro, RJ",
+        "char_start": 560,
+        "char_end": 619,
+        "bbox_px": [
+          175,
+          492,
+          719,
+          515
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s12",
+        "label": "CEP",
+        "group": "LOCATION",
+        "text": "22070-002",
+        "char_start": 625,
+        "char_end": 634,
+        "bbox_px": [
+          772,
+          492,
+          872,
+          515
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s13",
+        "label": "OTHER_NAME",
+        "group": "NAME",
+        "text": "Beatriz Marques de Oliveira",
+        "char_start": 677,
+        "char_end": 704,
+        "bbox_px": [
+          143,
+          566,
+          394,
+          589
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s14",
+        "label": "PHONE",
+        "group": "CONTACT",
+        "text": "(21) 98123-4567",
+        "char_start": 742,
+        "char_end": 757,
+        "bbox_px": [
+          166,
+          594,
+          319,
+          617
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s15",
+        "label": "CPF",
+        "group": "DOC_NUM",
+        "text": "935.411.347-80",
+        "char_start": 771,
+        "char_end": 785,
+        "bbox_px": [
+          419,
+          594,
+          564,
+          617
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s17",
+        "label": "DOCTOR_NAME",
+        "group": "NAME",
+        "text": "Dra. Patricia Souza Lima",
+        "char_start": 1169,
+        "char_end": 1193,
+        "bbox_px": [
+          236,
+          882,
+          450,
+          899
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s18",
+        "label": "CRM",
+        "group": "DOC_NUM",
+        "text": "CRM/RJ 098765",
+        "char_start": 1194,
+        "char_end": 1207,
+        "bbox_px": [
+          78,
+          910,
+          229,
+          933
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s19",
+        "label": "OTHER_NAME",
+        "group": "NAME",
+        "text": "Fernanda Castro",
+        "char_start": 1262,
+        "char_end": 1277,
+        "bbox_px": [
+          188,
+          938,
+          342,
+          957
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s20",
+        "label": "COREN",
+        "group": "DOC_NUM",
+        "text": "COREN/RJ 234567",
+        "char_start": 1284,
+        "char_end": 1299,
+        "bbox_px": [
+          380,
+          938,
+          557,
+          957
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s21",
+        "label": "EMAIL",
+        "group": "CONTACT",
+        "text": "plantao.cardio@example.com",
+        "char_start": 1318,
+        "char_end": 1344,
+        "bbox_px": [
+          238,
+          966,
+          506,
+          989
+        ],
+        "difficulty": "normal"
+      }
+    ],
+    "optional_spans": [
+      {
+        "id": "s01",
+        "label": "CNPJ",
+        "group": "ORG",
+        "text": "33.444.555/0001-81",
+        "char_start": 37,
+        "char_end": 55,
+        "bbox_px": [
+          1015,
+          79,
+          1162,
+          95
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s16",
+        "label": "DATE",
+        "group": "DATE",
+        "text": "22/04/2026",
+        "char_start": 819,
+        "char_end": 829,
+        "bbox_px": [
+          215,
+          667,
+          299,
+          686
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s22",
+        "label": "DATE",
+        "group": "DATE",
+        "text": "22/04/2026",
+        "char_start": 1361,
+        "char_end": 1371,
+        "bbox_px": [
+          190,
+          1009,
+          274,
+          1028
+        ],
+        "difficulty": "normal"
+      }
+    ],
+    "regions": []
+  }
+}

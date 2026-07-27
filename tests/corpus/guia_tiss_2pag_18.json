@@ -1,0 +1,212 @@
+{
+  "schema_version": 1,
+  "doc_id": "guia_tiss_2pag_18",
+  "doc_type": "guia_tiss_pdf",
+  "file": "guia_tiss_2pag_18.pdf",
+  "generator": {
+    "seed": 42,
+    "script_version": "2"
+  },
+  "pages": [
+    {
+      "width": 1240,
+      "height": 1754,
+      "canonical_text": "GUIA SP/SADT (sintetica) - pagina 1 de 2\nNo da guia no prestador: 20260601000777\nSenha de autorizacao: G91X44      Validade: 30/06/2026\nBENEFICIARIO\nNome: JOSE ROBERTO NASCIMENTO FILHO\nCNS: 898765432109870      Nascimento: 02/09/1972\nCarteira: 0 049 912345678901 1  (Unimed)\nPROCEDIMENTOS\n40808012  RM coluna lombar     Qtde: 1\nIndicacao clinica: lombociatalgia refrataria ha 6 semanas.\n(continua na pagina 2)",
+      "spans": [
+        {
+          "id": "s01",
+          "label": "GUIA_NUM",
+          "group": "DOC_NUM",
+          "text": "20260601000777",
+          "char_start": 66,
+          "char_end": 80,
+          "bbox_px": [
+            305,
+            132,
+            463,
+            155
+          ],
+          "difficulty": "normal"
+        },
+        {
+          "id": "s02",
+          "label": "SENHA_AUT",
+          "group": "DOC_NUM",
+          "text": "G91X44",
+          "char_start": 103,
+          "char_end": 109,
+          "bbox_px": [
+            284,
+            164,
+            361,
+            183
+          ],
+          "difficulty": "normal"
+        },
+        {
+          "id": "s04",
+          "label": "PATIENT_NAME",
+          "group": "NAME",
+          "text": "JOSE ROBERTO NASCIMENTO FILHO",
+          "char_start": 155,
+          "char_end": 184,
+          "bbox_px": [
+            146,
+            248,
+            513,
+            267
+          ],
+          "difficulty": "normal"
+        },
+        {
+          "id": "s05",
+          "label": "CNS",
+          "group": "DOC_NUM",
+          "text": "898765432109870",
+          "char_start": 190,
+          "char_end": 205,
+          "bbox_px": [
+            131,
+            280,
+            300,
+            299
+          ],
+          "difficulty": "normal"
+        },
+        {
+          "id": "s06",
+          "label": "DATE_OF_BIRTH",
+          "group": "DATE",
+          "text": "02/09/1972",
+          "char_start": 223,
+          "char_end": 233,
+          "bbox_px": [
+            449,
+            280,
+            553,
+            299
+          ],
+          "difficulty": "normal"
+        },
+        {
+          "id": "s07",
+          "label": "CARTEIRINHA",
+          "group": "DOC_NUM",
+          "text": "0 049 912345678901 1",
+          "char_start": 244,
+          "char_end": 264,
+          "bbox_px": [
+            161,
+            312,
+            370,
+            335
+          ],
+          "difficulty": "normal"
+        }
+      ],
+      "optional_spans": [
+        {
+          "id": "s03",
+          "label": "DATE",
+          "group": "DATE",
+          "text": "30/06/2026",
+          "char_start": 125,
+          "char_end": 135,
+          "bbox_px": [
+            480,
+            164,
+            585,
+            183
+          ],
+          "difficulty": "normal"
+        }
+      ],
+      "regions": []
+    },
+    {
+      "width": 1240,
+      "height": 1754,
+      "canonical_text": "GUIA SP/SADT (sintetica) - pagina 2 de 2\nSOLICITANTE\nProfissional: HELENA CASTILHO BRAGA\nConselho: CRM   Numero: 45678   UF: GO\nEXECUTANTE\nCodigo CNES: 2077485     Contratado: Centro Diagnostico Xdiag\nContato: (62) 3225-8899\nData de emissao: 01/06/2026\nAssinatura do beneficiario: ______________________________",
+      "spans": [
+        {
+          "id": "s01",
+          "label": "DOCTOR_NAME",
+          "group": "NAME",
+          "text": "HELENA CASTILHO BRAGA",
+          "char_start": 67,
+          "char_end": 88,
+          "bbox_px": [
+            206,
+            164,
+            475,
+            183
+          ],
+          "difficulty": "normal"
+        },
+        {
+          "id": "s02",
+          "label": "CRM",
+          "group": "DOC_NUM",
+          "text": "45678",
+          "char_start": 113,
+          "char_end": 118,
+          "bbox_px": [
+            319,
+            196,
+            378,
+            215
+          ],
+          "difficulty": "normal"
+        },
+        {
+          "id": "s03",
+          "label": "CNES",
+          "group": "DOC_NUM",
+          "text": "2077485",
+          "char_start": 152,
+          "char_end": 159,
+          "bbox_px": [
+            212,
+            280,
+            293,
+            303
+          ],
+          "difficulty": "normal"
+        },
+        {
+          "id": "s04",
+          "label": "PHONE",
+          "group": "CONTACT",
+          "text": "(62) 3225-8899",
+          "char_start": 210,
+          "char_end": 224,
+          "bbox_px": [
+            160,
+            312,
+            301,
+            335
+          ],
+          "difficulty": "normal"
+        }
+      ],
+      "optional_spans": [
+        {
+          "id": "s05",
+          "label": "DATE",
+          "group": "DATE",
+          "text": "01/06/2026",
+          "char_start": 242,
+          "char_end": 252,
+          "bbox_px": [
+            206,
+            373,
+            290,
+            389
+          ],
+          "difficulty": "normal"
+        }
+      ],
+      "regions": []
+    }
+  ]
+}

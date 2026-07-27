@@ -56,6 +56,27 @@ services:
     networks:
       - xdiag
 
+  # Avaliador de recall sobre tests/corpus. Nao sobe com o stack; use:
+  #   docker compose run --rm eval --level text
+  #   docker compose run --rm eval --level full --save-baseline
+  # Reusa o volume de modelos, entao roda offline apos o primeiro download.
+  eval:
+    profiles: ["eval"]
+    image: xdiag/privacy-api:0.1.0
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      XDIAG_EAGER_LOAD: "0"
+      XDIAG_MOCK: "${XDIAG_MOCK:-0}"
+    volumes:
+      - xdiag-models:/app/.cache
+      - ./scripts:/app/scripts:ro
+      - ./tests:/app/tests
+    entrypoint: ["python", "-u", "/app/scripts/evaluate.py"]
+    networks:
+      - xdiag
+
 volumes:
   xdiag-models:
     # O nome herdado xdiag-redact-models e mantido de proposito: renomear o

@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "doc_id": "laudo_raio_x_16",
+  "doc_type": "laudo_rx",
+  "image": "laudo_raio_x_16.png",
+  "generator": {
+    "seed": 42,
+    "script_version": "2"
+  },
+  "page": {
+    "width": 1240,
+    "height": 1754,
+    "canonical_text": "Xdiag\nCentro de Imagem Xdiag\nCNES: 7361442\nRADIOGRAFIA DE TORAX (PA E PERFIL)\nDocumento sintetico para teste, dados ficticios\nPaciente: Jose Roberto Nascimento Filho\n887459\nData de nascimento: 02/09/1972      Exame: 11/05/2026\nRELATORIO\nCampos pulmonares com transparencia preservada, sem consolidacoes.\nSeios costofrenicos livres. Silhueta cardiaca dentro dos limites.\nIndice cardiotoracico estimado em 0,48.\nArcabouco osseo sem lesoes evidentes.\nIMPRESSAO: estudo radiografico do torax sem alteracoes agudas.\nDra. Helena Castilho Braga    CRM/GO 45678\nTecnologo em radiologia: Paulo Sergio Andrade",
+    "spans": [
+      {
+        "id": "s02",
+        "label": "PATIENT_NAME",
+        "group": "NAME",
+        "text": "Jose Roberto Nascimento Filho",
+        "char_start": 136,
+        "char_end": 165,
+        "bbox_px": [
+          173,
+          264,
+          477,
+          283
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s03",
+        "label": "PRONTUARIO",
+        "group": "DOC_NUM",
+        "text": "887459",
+        "char_start": 166,
+        "char_end": 172,
+        "bbox_px": [
+          78,
+          291,
+          136,
+          307
+        ],
+        "difficulty": "hard"
+      },
+      {
+        "id": "s04",
+        "label": "DATE_OF_BIRTH",
+        "group": "DATE",
+        "text": "02/09/1972",
+        "char_start": 193,
+        "char_end": 203,
+        "bbox_px": [
+          268,
+          320,
+          372,
+          339
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s06",
+        "label": "DOCTOR_NAME",
+        "group": "NAME",
+        "text": "Dra. Helena Castilho Braga",
+        "char_start": 511,
+        "char_end": 537,
+        "bbox_px": [
+          78,
+          600,
+          313,
+          621
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s07",
+        "label": "CRM",
+        "group": "DOC_NUM",
+        "text": "CRM/GO 45678",
+        "char_start": 541,
+        "char_end": 553,
+        "bbox_px": [
+          329,
+          600,
+          462,
+          621
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s08",
+        "label": "OTHER_NAME",
+        "group": "NAME",
+        "text": "Paulo Sergio Andrade",
+        "char_start": 579,
+        "char_end": 599,
+        "bbox_px": [
+          306,
+          628,
+          505,
+          651
+        ],
+        "difficulty": "normal"
+      }
+    ],
+    "optional_spans": [
+      {
+        "id": "s01",
+        "label": "CNES",
+        "group": "DOC_NUM",
+        "text": "7361442",
+        "char_start": 35,
+        "char_end": 42,
+        "bbox_px": [
+          1095,
+          79,
+          1162,
+          95
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s05",
+        "label": "DATE",
+        "group": "DATE",
+        "text": "11/05/2026",
+        "char_start": 216,
+        "char_end": 226,
+        "bbox_px": [
+          478,
+          320,
+          582,
+          339
+        ],
+        "difficulty": "normal"
+      }
+    ],
+    "regions": []
+  }
+}

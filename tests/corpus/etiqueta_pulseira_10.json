@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "doc_id": "etiqueta_pulseira_10",
+  "doc_type": "etiqueta",
+  "image": "etiqueta_pulseira_10.png",
+  "generator": {
+    "seed": 42,
+    "script_version": "2"
+  },
+  "page": {
+    "width": 700,
+    "height": 200,
+    "canonical_text": "SANTA CASA SINTETICA\nProntuario: 887459",
+    "spans": [
+      {
+        "id": "s01",
+        "label": "PRONTUARIO",
+        "group": "DOC_NUM",
+        "text": "887459",
+        "char_start": 33,
+        "char_end": 39,
+        "bbox_px": [
+          92,
+          36,
+          144,
+          51
+        ],
+        "difficulty": "normal"
+      }
+    ],
+    "optional_spans": [],
+    "regions": [
+      {
+        "id": "r01",
+        "kind": "barcode_code128",
+        "bbox_px": [
+          24,
+          70,
+          404,
+          306
+        ],
+        "payload": "887459",
+        "contains_pii": true,
+        "expect": "redact"
+      }
+    ]
+  }
+}

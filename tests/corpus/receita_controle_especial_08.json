@@ -1,0 +1,185 @@
+{
+  "schema_version": 1,
+  "doc_id": "receita_controle_especial_08",
+  "doc_type": "receituario",
+  "image": "receita_controle_especial_08.png",
+  "generator": {
+    "seed": 42,
+    "script_version": "2"
+  },
+  "page": {
+    "width": 1240,
+    "height": 1754,
+    "canonical_text": "Xdiag\nConsultorio Xdiag, Clinica Medica\nReceituario de Controle Especial\nRECEITUARIO DE CONTROLE ESPECIAL\nPrimeira via: farmacia / Segunda via: paciente (sintetico)\nReceita No: B2 0012345\nIDENTIFICACAO DO EMITENTE\nNome: Dra. Camila Furtado Reis    CRM/SP 187654\nEndereco: Av. Paulista, 1000, cj 84, Sao Paulo, SP\nPaciente: Jose Roberto Nascimento Filho\nEndereco: Rua Itapeva, 210, ap 52, Bela Vista, Sao Paulo, SP\nPrescricao:\n1. Clonazepam 2 mg ................ 1 caixa\n   Tomar 1 comprimido a noite, ao deitar, por 30 dias.\nIDENTIFICACAO DO COMPRADOR\nIDENTIFICACAO DO FORNECEDOR\nNome: Beatriz Marques de Oliveira\nFarmacia: ______________________\nRG: 22.333.444-5 SSP/SP\nCNPJ: __________________________\nTelefone: (11) 97654-3210\nData: ____/____/________\nEndereco: Rua Aurora, 155, Santa Cecilia, Sao Paulo, SP\nSao Paulo, 05/05/2026",
+    "spans": [
+      {
+        "id": "s01",
+        "label": "NUMERO",
+        "group": "DOC_NUM",
+        "text": "B2 0012345",
+        "char_start": 177,
+        "char_end": 187,
+        "bbox_px": [
+          182,
+          264,
+          284,
+          281
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s02",
+        "label": "DOCTOR_NAME",
+        "group": "NAME",
+        "text": "Dra. Camila Furtado Reis",
+        "char_start": 220,
+        "char_end": 244,
+        "bbox_px": [
+          143,
+          328,
+          372,
+          347
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s03",
+        "label": "CRM",
+        "group": "DOC_NUM",
+        "text": "CRM/SP 187654",
+        "char_start": 248,
+        "char_end": 261,
+        "bbox_px": [
+          392,
+          328,
+          545,
+          347
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s05",
+        "label": "PATIENT_NAME",
+        "group": "NAME",
+        "text": "Jose Roberto Nascimento Filho",
+        "char_start": 323,
+        "char_end": 352,
+        "bbox_px": [
+          169,
+          406,
+          463,
+          424
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s06",
+        "label": "ADDRESS",
+        "group": "LOCATION",
+        "text": "Rua Itapeva, 210, ap 52, Bela Vista, Sao Paulo, SP",
+        "char_start": 363,
+        "char_end": 413,
+        "bbox_px": [
+          175,
+          434,
+          636,
+          457
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s07",
+        "label": "OTHER_NAME",
+        "group": "NAME",
+        "text": "Beatriz Marques de Oliveira",
+        "char_start": 586,
+        "char_end": 613,
+        "bbox_px": [
+          126,
+          619,
+          312,
+          637
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s08",
+        "label": "RG",
+        "group": "DOC_NUM",
+        "text": "22.333.444-5",
+        "char_start": 651,
+        "char_end": 663,
+        "bbox_px": [
+          109,
+          647,
+          198,
+          662
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s09",
+        "label": "PHONE",
+        "group": "CONTACT",
+        "text": "(11) 97654-3210",
+        "char_start": 714,
+        "char_end": 729,
+        "bbox_px": [
+          141,
+          675,
+          253,
+          693
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s10",
+        "label": "ADDRESS",
+        "group": "LOCATION",
+        "text": "Rua Aurora, 155, Santa Cecilia, Sao Paulo, SP",
+        "char_start": 765,
+        "char_end": 810,
+        "bbox_px": [
+          149,
+          703,
+          457,
+          721
+        ],
+        "difficulty": "normal"
+      }
+    ],
+    "optional_spans": [
+      {
+        "id": "s04",
+        "label": "ADDRESS",
+        "group": "LOCATION",
+        "text": "Av. Paulista, 1000, cj 84, Sao Paulo, SP",
+        "char_start": 272,
+        "char_end": 312,
+        "bbox_px": [
+          175,
+          356,
+          535,
+          379
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s11",
+        "label": "DATE",
+        "group": "DATE",
+        "text": "05/05/2026",
+        "char_start": 822,
+        "char_end": 832,
+        "bbox_px": [
+          161,
+          743,
+          245,
+          762
+        ],
+        "difficulty": "normal"
+      }
+    ],
+    "regions": []
+  }
+}

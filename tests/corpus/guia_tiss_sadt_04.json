@@ -1,0 +1,245 @@
+{
+  "schema_version": 1,
+  "doc_id": "guia_tiss_sadt_04",
+  "doc_type": "guia_tiss",
+  "image": "guia_tiss_sadt_04.png",
+  "generator": {
+    "seed": 42,
+    "script_version": "2"
+  },
+  "page": {
+    "width": 1240,
+    "height": 1754,
+    "canonical_text": "GUIA DE SERVICO PROFISSIONAL / SERVICO AUXILIAR DE\nDIAGNOSTICO E TERAPIA - SP/SADT (sintetica)\n1 - Registro ANS: 123456          2 - No da guia no prestador: 20260415000123\n3 - Numero da guia principal: 20260401000098\n4 - Data da autorizacao: 10/04/2026     5 - Senha: 784512     6 - Validade: 10/05/2026\nDADOS DO BENEFICIARIO\n8 - Numero da carteira: 0 049 912345678901 1   (Unimed)\n10 - Nome: CARLOS EDUARDO MARQUES DE OLIVEIRA\n11 - Cartao Nacional de Saude: 204567823100003\nDADOS DO SOLICITANTE\n13 - Codigo na operadora: 0045781    14 - Nome do contratado: Clinica Xdiag\n15 - Nome do profissional solicitante: PATRICIA SOUZA LIMA\n16 - Conselho: CRM   17 - Numero no conselho: 098765   18 - UF: RJ\nDADOS DO EXECUTANTE\n19 - Codigo CNES: 2077485    20 - CNPJ executante: 33.444.555/0001-81\nPROCEDIMENTOS SOLICITADOS\n40901220  US abdome total            Qtde: 1    Valor: 98,00\n40901130  US rins e vias urinarias   Qtde: 1    Valor: 86,50\nAssinatura do beneficiario: ______________________________\nData de emissao: 15/04/2026",
+    "spans": [
+      {
+        "id": "s02",
+        "label": "GUIA_NUM",
+        "group": "DOC_NUM",
+        "text": "20260415000123",
+        "char_start": 158,
+        "char_end": 172,
+        "bbox_px": [
+          622,
+          122,
+          781,
+          145
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s03",
+        "label": "GUIA_NUM",
+        "group": "DOC_NUM",
+        "text": "20260401000098",
+        "char_start": 203,
+        "char_end": 217,
+        "bbox_px": [
+          341,
+          152,
+          499,
+          175
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s05",
+        "label": "SENHA_AUT",
+        "group": "DOC_NUM",
+        "text": "784512",
+        "char_start": 269,
+        "char_end": 275,
+        "bbox_px": [
+          528,
+          198,
+          598,
+          217
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s07",
+        "label": "CARTEIRINHA",
+        "group": "DOC_NUM",
+        "text": "0 049 912345678901 1",
+        "char_start": 351,
+        "char_end": 371,
+        "bbox_px": [
+          292,
+          274,
+          501,
+          297
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s08",
+        "label": "PATIENT_NAME",
+        "group": "NAME",
+        "text": "CARLOS EDUARDO MARQUES DE OLIVEIRA",
+        "char_start": 394,
+        "char_end": 428,
+        "bbox_px": [
+          187,
+          304,
+          619,
+          324
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s09",
+        "label": "CNS",
+        "group": "DOC_NUM",
+        "text": "204567823100003",
+        "char_start": 460,
+        "char_end": 475,
+        "bbox_px": [
+          363,
+          334,
+          533,
+          353
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s10",
+        "label": "NUMERO",
+        "group": "DOC_NUM",
+        "text": "0045781",
+        "char_start": 523,
+        "char_end": 530,
+        "bbox_px": [
+          318,
+          410,
+          399,
+          433
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s11",
+        "label": "DOCTOR_NAME",
+        "group": "NAME",
+        "text": "PATRICIA SOUZA LIMA",
+        "char_start": 612,
+        "char_end": 631,
+        "bbox_px": [
+          443,
+          440,
+          670,
+          463
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s12",
+        "label": "CRM",
+        "group": "DOC_NUM",
+        "text": "098765",
+        "char_start": 678,
+        "char_end": 684,
+        "bbox_px": [
+          514,
+          470,
+          584,
+          489
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s13",
+        "label": "CNES",
+        "group": "DOC_NUM",
+        "text": "2077485",
+        "char_start": 737,
+        "char_end": 744,
+        "bbox_px": [
+          253,
+          546,
+          334,
+          569
+        ],
+        "difficulty": "normal"
+      }
+    ],
+    "optional_spans": [
+      {
+        "id": "s01",
+        "label": "NUMERO",
+        "group": "DOC_NUM",
+        "text": "123456",
+        "char_start": 113,
+        "char_end": 119,
+        "bbox_px": [
+          239,
+          122,
+          310,
+          145
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s04",
+        "label": "DATE",
+        "group": "DATE",
+        "text": "10/04/2026",
+        "char_start": 243,
+        "char_end": 253,
+        "bbox_px": [
+          299,
+          198,
+          403,
+          217
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s06",
+        "label": "DATE",
+        "group": "DATE",
+        "text": "10/05/2026",
+        "char_start": 294,
+        "char_end": 304,
+        "bbox_px": [
+          741,
+          198,
+          846,
+          217
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s14",
+        "label": "CNPJ",
+        "group": "ORG",
+        "text": "33.444.555/0001-81",
+        "char_start": 770,
+        "char_end": 788,
+        "bbox_px": [
+          562,
+          546,
+          745,
+          569
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s15",
+        "label": "DATE",
+        "group": "DATE",
+        "text": "15/04/2026",
+        "char_start": 1013,
+        "char_end": 1023,
+        "bbox_px": [
+          206,
+          739,
+          290,
+          755
+        ],
+        "difficulty": "normal"
+      }
+    ],
+    "regions": []
+  }
+}

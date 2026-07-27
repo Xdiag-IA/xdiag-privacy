@@ -1,0 +1,170 @@
+{
+  "schema_version": 1,
+  "doc_id": "guia_tiss_consulta_15",
+  "doc_type": "guia_tiss",
+  "image": "guia_tiss_consulta_15.png",
+  "generator": {
+    "seed": 42,
+    "script_version": "2"
+  },
+  "page": {
+    "width": 1240,
+    "height": 1754,
+    "canonical_text": "GUIA DE CONSULTA (sintetica)\n1 - Registro ANS: 417173       2 - No da guia: 2026050700455\nDADOS DO BENEFICIARIO\n4 - Numero da carteira: 705049812345678   (Bradesco Saude)\n6 - Nome: TEREZA CRISTINA FONTES AMARAL\n7 - Cartao Nacional de Saude: 170336195500008\nDADOS DO CONTRATADO\n9 - Codigo na operadora: 00812377   10 - Nome: Centro Clinico Xdiag\n11 - Codigo CNES: 7361442\nDADOS DO ATENDIMENTO\n13 - Data do atendimento: 07/05/2026    14 - Tipo de consulta: primeira\n15 - Profissional executante: FELIPE RAMOS CARDOSO\n16 - Conselho: CRM    17 - Numero: 224466    18 - UF: SP    19 - CBO: 225120\nAssinatura do profissional executante: ______________________________",
+    "spans": [
+      {
+        "id": "s02",
+        "label": "GUIA_NUM",
+        "group": "DOC_NUM",
+        "text": "2026050700455",
+        "char_start": 76,
+        "char_end": 89,
+        "bbox_px": [
+          485,
+          122,
+          633,
+          145
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s03",
+        "label": "CARTEIRINHA",
+        "group": "DOC_NUM",
+        "text": "705049812345678",
+        "char_start": 136,
+        "char_end": 151,
+        "bbox_px": [
+          292,
+          198,
+          461,
+          221
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s04",
+        "label": "PATIENT_NAME",
+        "group": "NAME",
+        "text": "TEREZA CRISTINA FONTES AMARAL",
+        "char_start": 181,
+        "char_end": 210,
+        "bbox_px": [
+          176,
+          228,
+          534,
+          247
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s05",
+        "label": "CNS",
+        "group": "DOC_NUM",
+        "text": "170336195500008",
+        "char_start": 241,
+        "char_end": 256,
+        "bbox_px": [
+          353,
+          258,
+          522,
+          277
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s06",
+        "label": "NUMERO",
+        "group": "DOC_NUM",
+        "text": "00812377",
+        "char_start": 302,
+        "char_end": 310,
+        "bbox_px": [
+          307,
+          334,
+          399,
+          357
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s07",
+        "label": "CNES",
+        "group": "DOC_NUM",
+        "text": "7361442",
+        "char_start": 363,
+        "char_end": 370,
+        "bbox_px": [
+          252,
+          364,
+          334,
+          387
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s09",
+        "label": "DOCTOR_NAME",
+        "group": "NAME",
+        "text": "FELIPE RAMOS CARDOSO",
+        "char_start": 494,
+        "char_end": 514,
+        "bbox_px": [
+          357,
+          470,
+          617,
+          489
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s10",
+        "label": "CRM",
+        "group": "DOC_NUM",
+        "text": "224466",
+        "char_start": 550,
+        "char_end": 556,
+        "bbox_px": [
+          407,
+          500,
+          477,
+          519
+        ],
+        "difficulty": "normal"
+      }
+    ],
+    "optional_spans": [
+      {
+        "id": "s01",
+        "label": "NUMERO",
+        "group": "DOC_NUM",
+        "text": "417173",
+        "char_start": 47,
+        "char_end": 53,
+        "bbox_px": [
+          239,
+          122,
+          310,
+          145
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s08",
+        "label": "DATE",
+        "group": "DATE",
+        "text": "07/05/2026",
+        "char_start": 418,
+        "char_end": 428,
+        "bbox_px": [
+          317,
+          440,
+          421,
+          463
+        ],
+        "difficulty": "normal"
+      }
+    ],
+    "regions": []
+  }
+}

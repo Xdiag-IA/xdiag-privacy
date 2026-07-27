@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "doc_id": "us_header_burn_12",
+  "doc_type": "us_frame",
+  "image": "us_header_burn_12.png",
+  "generator": {
+    "seed": 42,
+    "script_version": "2"
+  },
+  "page": {
+    "width": 1024,
+    "height": 768,
+    "canonical_text": "PAT: SILVA, MARIA APARECIDA  ID: 2026-004-887\nDOB: 12/03/1991  GE LOGIQ P9  27/04/2026 14:32  TIs 0.2  MI 0.9",
+    "spans": [
+      {
+        "id": "s01",
+        "label": "PATIENT_NAME",
+        "group": "NAME",
+        "text": "SILVA, MARIA APARECIDA",
+        "char_start": 5,
+        "char_end": 27,
+        "bbox_px": [
+          59,
+          8,
+          261,
+          26
+        ],
+        "difficulty": "hard"
+      },
+      {
+        "id": "s02",
+        "label": "PRONTUARIO",
+        "group": "DOC_NUM",
+        "text": "2026-004-887",
+        "char_start": 33,
+        "char_end": 45,
+        "bbox_px": [
+          311,
+          8,
+          423,
+          26
+        ],
+        "difficulty": "hard"
+      },
+      {
+        "id": "s03",
+        "label": "DATE_OF_BIRTH",
+        "group": "DATE",
+        "text": "12/03/1991",
+        "char_start": 51,
+        "char_end": 61,
+        "bbox_px": [
+          59,
+          31,
+          153,
+          50
+        ],
+        "difficulty": "hard"
+      }
+    ],
+    "optional_spans": [],
+    "regions": [
+      {
+        "id": "r01",
+        "kind": "us_header",
+        "bbox_px": [
+          0,
+          0,
+          1024,
+          64
+        ],
+        "payload": null,
+        "contains_pii": true,
+        "expect": "redact"
+      }
+    ]
+  }
+}

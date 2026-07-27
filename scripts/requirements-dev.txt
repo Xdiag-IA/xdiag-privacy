@@ -1,0 +1,5 @@
+# Dependencias APENAS para gerar o corpus sintetico no host.
+# Nunca entram na imagem Docker do backend; o runtime do produto nao as usa.
+Pillow>=10.4
+python-barcode>=0.15
+qrcode>=7.4

@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "doc_id": "etiqueta_hospitalar_09",
+  "doc_type": "etiqueta",
+  "image": "etiqueta_hospitalar_09.png",
+  "generator": {
+    "seed": 42,
+    "script_version": "2"
+  },
+  "page": {
+    "width": 600,
+    "height": 300,
+    "canonical_text": "HOSPITAL SINTETICO XDIAG\nPaciente: CARLOS EDUARDO M. DE OLIVEIRA\nPront: 2026-004-887  Atend: 778991\nNasc: 04/07/1968  Leito: 302-B",
+    "spans": [
+      {
+        "id": "s01",
+        "label": "PATIENT_NAME",
+        "group": "NAME",
+        "text": "CARLOS EDUARDO M. DE OLIVEIRA",
+        "char_start": 35,
+        "char_end": 64,
+        "bbox_px": [
+          87,
+          43,
+          357,
+          58
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s02",
+        "label": "PRONTUARIO",
+        "group": "DOC_NUM",
+        "text": "2026-004-887",
+        "char_start": 72,
+        "char_end": 84,
+        "bbox_px": [
+          60,
+          68,
+          154,
+          83
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s03",
+        "label": "ATENDIMENTO",
+        "group": "DOC_NUM",
+        "text": "778991",
+        "char_start": 93,
+        "char_end": 99,
+        "bbox_px": [
+          203,
+          68,
+          255,
+          83
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s04",
+        "label": "DATE_OF_BIRTH",
+        "group": "DATE",
+        "text": "04/07/1968",
+        "char_start": 106,
+        "char_end": 116,
+        "bbox_px": [
+          58,
+          94,
+          134,
+          109
+        ],
+        "difficulty": "normal"
+      }
+    ],
+    "optional_spans": [],
+    "regions": [
+      {
+        "id": "r01",
+        "kind": "barcode_code128",
+        "bbox_px": [
+          30,
+          140,
+          450,
+          211
+        ],
+        "payload": "ATD778991^OLIVEIRA^CARLOS",
+        "contains_pii": true,
+        "expect": "redact"
+      }
+    ]
+  }
+}

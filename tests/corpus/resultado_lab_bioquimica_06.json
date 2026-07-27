@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "doc_id": "resultado_lab_bioquimica_06",
+  "doc_type": "resultado_lab",
+  "image": "resultado_lab_bioquimica_06.png",
+  "generator": {
+    "seed": 42,
+    "script_version": "2"
+  },
+  "page": {
+    "width": 1240,
+    "height": 1754,
+    "canonical_text": "Xdiag\nLaboratorio Xdiag Analises Clinicas\nCNPJ: 21.987.654/0001-20\nBIOQUIMICA SERICA\nDocumento sintetico para teste, dados ficticios\nPaciente: Ana Beatriz Rodrigues Lima    Protocolo: LAB-2026-88452\nData de nascimento: 30/11/1979    Coleta: 02/05/2026 08:02\nGlicose em jejum                    92 mg/dL           70 a 99\nCreatinina                          0,84 mg/dL         0,50 a 1,10\nUreia                               31 mg/dL           15 a 45\nColesterol total                    187 mg/dL          inferior a 190\nHDL colesterol                      52 mg/dL           superior a 40\nLDL colesterol (calculado)          112 mg/dL          inferior a 130\nTriglicerides                       114 mg/dL          inferior a 150\nTGO (AST)                           24 U/L             ate 34\nTGP (ALT)                           27 U/L             ate 36\nConfira a autenticidade do laudo pelo QR code ao lado.\nResponsavel tecnico: Dra. Livia Quintela Matos",
+    "spans": [
+      {
+        "id": "s02",
+        "label": "PATIENT_NAME",
+        "group": "NAME",
+        "text": "Ana Beatriz Rodrigues Lima",
+        "char_start": 143,
+        "char_end": 169,
+        "bbox_px": [
+          173,
+          264,
+          444,
+          287
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s03",
+        "label": "ATENDIMENTO",
+        "group": "DOC_NUM",
+        "text": "LAB-2026-88452",
+        "char_start": 184,
+        "char_end": 198,
+        "bbox_px": [
+          569,
+          264,
+          727,
+          287
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s04",
+        "label": "DATE_OF_BIRTH",
+        "group": "DATE",
+        "text": "30/11/1979",
+        "char_start": 219,
+        "char_end": 229,
+        "bbox_px": [
+          268,
+          292,
+          372,
+          311
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s06",
+        "label": "OTHER_NAME",
+        "group": "NAME",
+        "text": "Dra. Livia Quintela Matos",
+        "char_start": 930,
+        "char_end": 955,
+        "bbox_px": [
+          273,
+          670,
+          502,
+          693
+        ],
+        "difficulty": "normal"
+      }
+    ],
+    "optional_spans": [
+      {
+        "id": "s01",
+        "label": "CNPJ",
+        "group": "ORG",
+        "text": "21.987.654/0001-20",
+        "char_start": 48,
+        "char_end": 66,
+        "bbox_px": [
+          1015,
+          79,
+          1162,
+          95
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s05",
+        "label": "DATE",
+        "group": "DATE",
+        "text": "02/05/2026",
+        "char_start": 241,
+        "char_end": 251,
+        "bbox_px": [
+          460,
+          292,
+          565,
+          311
+        ],
+        "difficulty": "normal"
+      }
+    ],
+    "regions": [
+      {
+        "id": "r01",
+        "kind": "qrcode",
+        "bbox_px": [
+          950,
+          640,
+          1082,
+          772
+        ],
+        "payload": "PROTO:LAB-2026-88452;PAC:ANA BEATRIZ RODRIGUES LIMA",
+        "contains_pii": true,
+        "expect": "redact"
+      }
+    ]
+  }
+}

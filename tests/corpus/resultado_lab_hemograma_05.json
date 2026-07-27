@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "doc_id": "resultado_lab_hemograma_05",
+  "doc_type": "resultado_lab",
+  "image": "resultado_lab_hemograma_05.png",
+  "generator": {
+    "seed": 42,
+    "script_version": "2"
+  },
+  "page": {
+    "width": 1240,
+    "height": 1754,
+    "canonical_text": "Xdiag\nLaboratorio Xdiag Analises Clinicas\nCNPJ: 21.987.654/0001-20\nHEMOGRAMA COMPLETO\nDocumento sintetico para teste, dados ficticios\nPaciente: Tereza Cristina Fontes Amaral    Registro: 20261578\nData de nascimento: 22/01/1958    Coleta: 29/04/2026 07:41\nSolicitante: Dr. Felipe Ramos Cardoso  CRM/SP 224466\nSERIE VERMELHA                     Resultado          Valores de referencia\nHemacias                            4,62 milhoes/mm3   4,0 a 5,5\nHemoglobina                         13,8 g/dL          12,0 a 16,0\nHematocrito                         41,5 %             36,0 a 48,0\nVCM                                 89,8 fL            80,0 a 100,0\nHCM                                 29,9 pg            26,0 a 34,0\nCHCM                                33,3 g/dL          31,0 a 36,0\nRDW                                 12,9 %             11,0 a 16,0\nSERIE BRANCA\nLeucocitos                          6.840 /mm3         4.000 a 11.000\nNeutrofilos                         58,2 %  3.981/mm3  40,0 a 70,0\nLinfocitos                          31,4 %  2.148/mm3  20,0 a 45,0\nMonocitos                           7,1 %   486/mm3    2,0 a 10,0\nEosinofilos                         2,8 %   192/mm3    1,0 a 5,0\nBasofilos                           0,5 %   34/mm3     0,0 a 2,0\nPLAQUETAS                           268.000 /mm3       150.000 a 450.000\nResponsavel tecnico: Dra. Livia Quintela Matos  CRBM 11223",
+    "spans": [
+      {
+        "id": "s02",
+        "label": "PATIENT_NAME",
+        "group": "NAME",
+        "text": "Tereza Cristina Fontes Amaral",
+        "char_start": 144,
+        "char_end": 173,
+        "bbox_px": [
+          173,
+          264,
+          466,
+          287
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s03",
+        "label": "ATENDIMENTO",
+        "group": "DOC_NUM",
+        "text": "20261578",
+        "char_start": 187,
+        "char_end": 195,
+        "bbox_px": [
+          579,
+          264,
+          672,
+          287
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s04",
+        "label": "DATE_OF_BIRTH",
+        "group": "DATE",
+        "text": "22/01/1958",
+        "char_start": 216,
+        "char_end": 226,
+        "bbox_px": [
+          268,
+          292,
+          372,
+          311
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s06",
+        "label": "DOCTOR_NAME",
+        "group": "NAME",
+        "text": "Dr. Felipe Ramos Cardoso",
+        "char_start": 268,
+        "char_end": 292,
+        "bbox_px": [
+          181,
+          320,
+          421,
+          343
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s07",
+        "label": "CRM",
+        "group": "DOC_NUM",
+        "text": "CRM/SP 224466",
+        "char_start": 294,
+        "char_end": 307,
+        "bbox_px": [
+          428,
+          320,
+          582,
+          343
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s08",
+        "label": "OTHER_NAME",
+        "group": "NAME",
+        "text": "Dra. Livia Quintela Matos",
+        "char_start": 1359,
+        "char_end": 1384,
+        "bbox_px": [
+          273,
+          834,
+          502,
+          857
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s09",
+        "label": "NUMERO",
+        "group": "DOC_NUM",
+        "text": "11223",
+        "char_start": 1391,
+        "char_end": 1396,
+        "bbox_px": [
+          574,
+          834,
+          633,
+          857
+        ],
+        "difficulty": "normal"
+      }
+    ],
+    "optional_spans": [
+      {
+        "id": "s01",
+        "label": "CNPJ",
+        "group": "ORG",
+        "text": "21.987.654/0001-20",
+        "char_start": 48,
+        "char_end": 66,
+        "bbox_px": [
+          1015,
+          79,
+          1162,
+          95
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s05",
+        "label": "DATE",
+        "group": "DATE",
+        "text": "29/04/2026",
+        "char_start": 238,
+        "char_end": 248,
+        "bbox_px": [
+          461,
+          292,
+          565,
+          311
+        ],
+        "difficulty": "normal"
+      }
+    ],
+    "regions": []
+  }
+}

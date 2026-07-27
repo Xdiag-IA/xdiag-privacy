@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "doc_id": "receituario_assinado_17",
+  "doc_type": "receituario",
+  "image": "receituario_assinado_17.png",
+  "generator": {
+    "seed": 42,
+    "script_version": "2"
+  },
+  "page": {
+    "width": 1240,
+    "height": 1754,
+    "canonical_text": "Xdiag\nConsultorio Xdiag, Clinica Medica\nReceituario simples\nRECEITUARIO\nDocumento sintetico para teste, dados ficticios\nPaciente: Maria Aparecida Pereira da Silva\nCPF: 529.982.247-25\nUso oral:\n1. Nitrofurantoina 100 mg\n   Tomar 1 capsula de 6 em 6 horas, por 7 dias.\n2. Dipirona 500 mg\n   Tomar 1 comprimido se dor, ate 4 vezes ao dia.\nDr. Joao Carlos Pereira\nCRM/SP 123456\nSao Paulo, 12/05/2026",
+    "spans": [
+      {
+        "id": "s01",
+        "label": "PATIENT_NAME",
+        "group": "NAME",
+        "text": "Maria Aparecida Pereira da Silva",
+        "char_start": 130,
+        "char_end": 162,
+        "bbox_px": [
+          173,
+          264,
+          488,
+          287
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s02",
+        "label": "CPF",
+        "group": "DOC_NUM",
+        "text": "529.982.247-25",
+        "char_start": 168,
+        "char_end": 182,
+        "bbox_px": [
+          129,
+          292,
+          273,
+          311
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s03",
+        "label": "DOCTOR_NAME",
+        "group": "NAME",
+        "text": "Dr. Joao Carlos Pereira",
+        "char_start": 336,
+        "char_end": 359,
+        "bbox_px": [
+          428,
+          884,
+          631,
+          901
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s04",
+        "label": "CRM",
+        "group": "DOC_NUM",
+        "text": "CRM/SP 123456",
+        "char_start": 360,
+        "char_end": 373,
+        "bbox_px": [
+          428,
+          911,
+          553,
+          927
+        ],
+        "difficulty": "normal"
+      }
+    ],
+    "optional_spans": [
+      {
+        "id": "s05",
+        "label": "DATE",
+        "group": "DATE",
+        "text": "12/05/2026",
+        "char_start": 385,
+        "char_end": 395,
+        "bbox_px": [
+          511,
+          939,
+          595,
+          958
+        ],
+        "difficulty": "normal"
+      }
+    ],
+    "regions": [
+      {
+        "id": "r01",
+        "kind": "signature",
+        "bbox_px": [
+          424,
+          746,
+          796,
+          868
+        ],
+        "payload": null,
+        "contains_pii": true,
+        "expect": "candidate"
+      }
+    ]
+  }
+}

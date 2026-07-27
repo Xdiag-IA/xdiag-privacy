@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "doc_id": "encaminhamento_11",
+  "doc_type": "encaminhamento",
+  "image": "encaminhamento_11.png",
+  "generator": {
+    "seed": 42,
+    "script_version": "2"
+  },
+  "page": {
+    "width": 1240,
+    "height": 1754,
+    "canonical_text": "Xdiag\nConsultorio Xdiag, Clinica Geral\nEncaminhamento medico\nENCAMINHAMENTO\nDocumento sintetico para teste, dados ficticios\nAo colega cardiologista,\nEncaminho a paciente Tereza Cristina Fontes Amaral, 68 anos, hipertensa\nde longa data e com dislipidemia em tratamento, que apresentou episodios\nde dor toracica atipica aos moderados esforcos nas ultimas tres semanas.\nNega sincope. Em uso de losartana 50 mg/dia e atorvastatina 20 mg/dia.\nEletrocardiograma de repouso sem alteracoes isquemicas agudas.\nSolicito avaliacao especializada e, a criterio, teste ergometrico.\nContato da paciente: (62) 98811-2233\nAtenciosamente,\nDr. Rafael Antunes Sobrinho\nCFM 12345 - Goiania, GO\nGoiania, 21/05/2026",
+    "spans": [
+      {
+        "id": "s01",
+        "label": "PATIENT_NAME",
+        "group": "NAME",
+        "text": "Tereza Cristina Fontes Amaral",
+        "char_start": 170,
+        "char_end": 199,
+        "bbox_px": [
+          248,
+          309,
+          481,
+          329
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s02",
+        "label": "AGE",
+        "group": "AGE",
+        "text": "68 anos",
+        "char_start": 201,
+        "char_end": 208,
+        "bbox_px": [
+          486,
+          309,
+          550,
+          329
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s03",
+        "label": "PHONE",
+        "group": "CONTACT",
+        "text": "(62) 98811-2233",
+        "char_start": 589,
+        "char_end": 604,
+        "bbox_px": [
+          237,
+          491,
+          363,
+          511
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s04",
+        "label": "DOCTOR_NAME",
+        "group": "NAME",
+        "text": "Dr. Rafael Antunes Sobrinho",
+        "char_start": 621,
+        "char_end": 648,
+        "bbox_px": [
+          78,
+          612,
+          344,
+          630
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s05",
+        "label": "CRM",
+        "group": "DOC_NUM",
+        "text": "CFM 12345",
+        "char_start": 649,
+        "char_end": 658,
+        "bbox_px": [
+          78,
+          639,
+          166,
+          658
+        ],
+        "difficulty": "normal"
+      }
+    ],
+    "optional_spans": [
+      {
+        "id": "s06",
+        "label": "DATE",
+        "group": "DATE",
+        "text": "21/05/2026",
+        "char_start": 682,
+        "char_end": 692,
+        "bbox_px": [
+          142,
+          667,
+          226,
+          686
+        ],
+        "difficulty": "normal"
+      }
+    ],
+    "regions": []
+  }
+}

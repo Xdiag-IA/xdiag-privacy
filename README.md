@@ -69,9 +69,13 @@ xdiag-redact/
                        ProgressTracker
     package.json
     Dockerfile
-  samples/             documentos sinteticos PNG (gerar via script)
+  samples/             documentos sinteticos PNG de demonstracao
+  tests/
+    corpus/            17 PNGs + 1 PDF sinteticos com gabarito JSON
+    baselines/         baselines de recall versionados (evaluate.py)
   scripts/
-    generate_samples.py  gera os 3 PNGs sinteticos
+    generate_samples.py  gera corpus com gabarito e samples de demo
+    evaluate.py          mede recall/precisao por label contra o corpus
     smoke_test.py        roda OCR+PII+mapper em mock mode
   docker-compose.yml
   README.md
@@ -130,6 +134,38 @@ XDIAG_MOCK=1 python scripts/smoke_test.py
 Roda o pipeline OCR + PII + mapper sem PaddleOCR nem OpenMed, validando os
 schemas e o calculo de bboxes. Util para testar mudancas no `mapper.py` ou
 em `models.py` rapidamente.
+
+## Harness de regressao de recall
+
+O diretorio `tests/corpus/` contem 17 PNGs e 1 PDF sinteticos com gabarito
+JSON (spans de PII que DEVEM ser tarjados, spans opcionais e regioes nao
+textuais como barcode, QR, assinatura e faixa de ultrassom). Para regenerar:
+
+```bash
+pip install -r scripts/requirements-dev.txt
+python scripts/generate_samples.py --corpus
+```
+
+O avaliador roda o pipeline sobre o corpus e imprime, por label, recall e
+precisao, com os falsos negativos listados um a um e PRIMEIRO no relatorio.
+Politica do projeto: falso negativo e falha critica; falso positivo e ruido
+aceitavel. Execucao com o modelo real (reusa o volume de modelos):
+
+```bash
+docker compose run --rm eval --level text
+```
+
+```bash
+docker compose run --rm eval --level full
+```
+
+`--level text` injeta o texto canonico do gabarito direto no detector de PII
+(rapido, isola pii.py). `--level full` roda PNG -> OCR -> PII -> mapper e
+casa por cobertura de pixels, imune a variacao do OCR. `--save-baseline`
+grava `tests/baselines/baseline-<level>.json` (versionado); execucoes
+seguintes comparam e retornam exit code 1 se houver regressao. Regra do
+projeto: rodar antes e depois de cada bloco de mudanca; bloco que piora
+recall em qualquer label e revertido.
 
 ## Validando o requisito de zero saida de rede
 

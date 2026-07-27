@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "doc_id": "us_header_burn_13",
+  "doc_type": "us_frame",
+  "image": "us_header_burn_13.png",
+  "generator": {
+    "seed": 42,
+    "script_version": "2"
+  },
+  "page": {
+    "width": 1024,
+    "height": 768,
+    "canonical_text": "MARIA APARECIDA PEREIRA DA SILVA   12/03/1991\nSAMSUNG HS40  28/04/2026 09:11  ABD GERAL  FR 22Hz  GN 48\nRIM D  +DIST 4.5cm",
+    "spans": [
+      {
+        "id": "s01",
+        "label": "PATIENT_NAME",
+        "group": "NAME",
+        "text": "MARIA APARECIDA PEREIRA DA SILVA",
+        "char_start": 0,
+        "char_end": 32,
+        "bbox_px": [
+          14,
+          7,
+          306,
+          25
+        ],
+        "difficulty": "hard"
+      },
+      {
+        "id": "s02",
+        "label": "DATE_OF_BIRTH",
+        "group": "DATE",
+        "text": "12/03/1991",
+        "char_start": 35,
+        "char_end": 45,
+        "bbox_px": [
+          329,
+          7,
+          423,
+          25
+        ],
+        "difficulty": "hard"
+      }
+    ],
+    "optional_spans": [],
+    "regions": [
+      {
+        "id": "r01",
+        "kind": "us_header",
+        "bbox_px": [
+          0,
+          0,
+          1024,
+          64
+        ],
+        "payload": null,
+        "contains_pii": true,
+        "expect": "redact"
+      }
+    ]
+  }
+}

@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "doc_id": "pedido_exame_03",
+  "doc_type": "pedido_exame",
+  "image": "pedido_exame_03.png",
+  "generator": {
+    "seed": 42,
+    "script_version": "2"
+  },
+  "page": {
+    "width": 1240,
+    "height": 1754,
+    "canonical_text": "Xdiag\nConsultorio Xdiag, Clinica Geral\nCNPJ: 11.222.333/0001-81\nPEDIDO DE EXAME / SOLICITACAO\nDocumento sintetico para teste, dados ficticios\nPaciente: Ana Beatriz Rodrigues Lima\nCNS: 700 1234 5678 9010      Data de nascimento: 30/11/1979\nConvenio: Amil            Carteirinha: 365498712\nHIPOTESE DIAGNOSTICA\nNefrolitiase. CID-10: N20.0\nEXAMES SOLICITADOS\n1. Ultrassonografia de rins e vias urinarias\n2. Urina tipo I (EAS)\n3. Creatinina serica\n4. Acido urico serico\nObservacoes: paciente em uso de losartana 50 mg. Jejum nao necessario.\nSolicitante: Dr. Rafael Antunes Sobrinho\nCRM 87654 GO\nGoiania, 18/05/2026",
+    "spans": [
+      {
+        "id": "s02",
+        "label": "PATIENT_NAME",
+        "group": "NAME",
+        "text": "Ana Beatriz Rodrigues Lima",
+        "char_start": 152,
+        "char_end": 178,
+        "bbox_px": [
+          173,
+          264,
+          444,
+          287
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s03",
+        "label": "CNS",
+        "group": "DOC_NUM",
+        "text": "700 1234 5678 9010",
+        "char_start": 184,
+        "char_end": 202,
+        "bbox_px": [
+          131,
+          292,
+          318,
+          311
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s04",
+        "label": "DATE_OF_BIRTH",
+        "group": "DATE",
+        "text": "30/11/1979",
+        "char_start": 228,
+        "char_end": 238,
+        "bbox_px": [
+          540,
+          292,
+          644,
+          311
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s05",
+        "label": "CARTEIRINHA",
+        "group": "DOC_NUM",
+        "text": "365498712",
+        "char_start": 278,
+        "char_end": 287,
+        "bbox_px": [
+          391,
+          320,
+          495,
+          339
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s06",
+        "label": "DOCTOR_NAME",
+        "group": "NAME",
+        "text": "Dr. Rafael Antunes Sobrinho",
+        "char_start": 550,
+        "char_end": 577,
+        "bbox_px": [
+          180,
+          696,
+          429,
+          713
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s07",
+        "label": "CRM",
+        "group": "DOC_NUM",
+        "text": "CRM 87654 GO",
+        "char_start": 578,
+        "char_end": 590,
+        "bbox_px": [
+          78,
+          724,
+          226,
+          743
+        ],
+        "difficulty": "normal"
+      }
+    ],
+    "optional_spans": [
+      {
+        "id": "s01",
+        "label": "CNPJ",
+        "group": "ORG",
+        "text": "11.222.333/0001-81",
+        "char_start": 45,
+        "char_end": 63,
+        "bbox_px": [
+          1015,
+          79,
+          1162,
+          95
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s08",
+        "label": "DATE",
+        "group": "DATE",
+        "text": "18/05/2026",
+        "char_start": 600,
+        "char_end": 610,
+        "bbox_px": [
+          158,
+          752,
+          262,
+          774
+        ],
+        "difficulty": "normal"
+      }
+    ],
+    "regions": []
+  }
+}

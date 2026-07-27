@@ -1,0 +1,290 @@
+{
+  "schema_version": 1,
+  "doc_id": "laudo_us_obstetrico_01",
+  "doc_type": "laudo_us",
+  "image": "laudo_us_obstetrico_01.png",
+  "generator": {
+    "seed": 42,
+    "script_version": "2"
+  },
+  "page": {
+    "width": 1240,
+    "height": 1754,
+    "canonical_text": "Xdiag\nClinica Xdiag de Imagem\nCNPJ: 11.222.333/0001-81\nLAUDO DE ULTRASSONOGRAFIA OBSTETRICA\nDocumento sintetico para teste, dados ficticios\nPaciente: Maria Aparecida Pereira da Silva\nCPF: 529.982.247-25                RG: 12.345.678-9 SSP/SP\nData de nascimento: 12/03/1991                Idade: 34 anos\nTelefone: (11) 98765-4321         Email: maria.silva@example.com\nEndereco: Rua das Acacias, 245, apto 72, Vila Mariana, Sao Paulo, SP, CEP 04101-000\nConvenio: Saude Plena            Carteirinha: 0099 8877 6655 4433\nData do exame: 15/04/2026                     Idade gestacional: 22 semanas e 4 dias\nEXAME REALIZADO\nRealizada ultrassonografia obstetrica por via abdominal, com transdutor convexo.\nFeto unico, em apresentacao cefalica, dorso a esquerda materna.\nBatimentos cardiacos fetais presentes e ritmicos, com frequencia de 148 bpm.\nMovimentacao fetal ativa observada durante o exame.\nPlacenta de insercao posterior, grau 1 de Grannum, sem sinais de descolamento.\nLiquido amniotico em quantidade normal (ILA estimado em 14 cm).\nCordao umbilical com tres vasos (duas arterias e uma veia).\nBIOMETRIA FETAL\nDBP: 54 mm     CC: 198 mm     CA: 175 mm     CF: 38 mm\nPeso fetal estimado: 540 gramas (percentil 52 para a idade gestacional).\nCONCLUSAO\nGestacao topica, unica, em evolucao normal para a idade gestacional referida.\nMedico responsavel: Dr. Joao Carlos Pereira\nCRM/SP 123456                 RQE 54321\nTelefone do consultorio: (11) 3000-1234\nEmail: joao.pereira@example.com\nSao Paulo, 15/04/2026",
+    "spans": [
+      {
+        "id": "s02",
+        "label": "PATIENT_NAME",
+        "group": "NAME",
+        "text": "Maria Aparecida Pereira da Silva",
+        "char_start": 150,
+        "char_end": 182,
+        "bbox_px": [
+          173,
+          262,
+          488,
+          285
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s03",
+        "label": "CPF",
+        "group": "DOC_NUM",
+        "text": "529.982.247-25",
+        "char_start": 188,
+        "char_end": 202,
+        "bbox_px": [
+          129,
+          290,
+          273,
+          309
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s04",
+        "label": "RG",
+        "group": "DOC_NUM",
+        "text": "12.345.678-9",
+        "char_start": 222,
+        "char_end": 234,
+        "bbox_px": [
+          407,
+          290,
+          529,
+          309
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s05",
+        "label": "DATE_OF_BIRTH",
+        "group": "DATE",
+        "text": "12/03/1991",
+        "char_start": 262,
+        "char_end": 272,
+        "bbox_px": [
+          268,
+          318,
+          372,
+          337
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s06",
+        "label": "AGE",
+        "group": "AGE",
+        "text": "34 anos",
+        "char_start": 295,
+        "char_end": 302,
+        "bbox_px": [
+          526,
+          318,
+          601,
+          337
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s07",
+        "label": "PHONE",
+        "group": "CONTACT",
+        "text": "(11) 98765-4321",
+        "char_start": 313,
+        "char_end": 328,
+        "bbox_px": [
+          166,
+          346,
+          319,
+          369
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s08",
+        "label": "EMAIL",
+        "group": "CONTACT",
+        "text": "maria.silva@example.com",
+        "char_start": 344,
+        "char_end": 367,
+        "bbox_px": [
+          429,
+          346,
+          668,
+          369
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s09",
+        "label": "ADDRESS",
+        "group": "LOCATION",
+        "text": "Rua das Acacias, 245, apto 72, Vila Mariana, Sao Paulo, SP",
+        "char_start": 378,
+        "char_end": 436,
+        "bbox_px": [
+          175,
+          374,
+          715,
+          397
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s10",
+        "label": "CEP",
+        "group": "LOCATION",
+        "text": "04101-000",
+        "char_start": 442,
+        "char_end": 451,
+        "bbox_px": [
+          768,
+          374,
+          868,
+          397
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s11",
+        "label": "CARTEIRINHA",
+        "group": "DOC_NUM",
+        "text": "0099 8877 6655 4433",
+        "char_start": 498,
+        "char_end": 517,
+        "bbox_px": [
+          467,
+          402,
+          665,
+          421
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s13",
+        "label": "DOCTOR_NAME",
+        "group": "NAME",
+        "text": "Dr. Joao Carlos Pereira",
+        "char_start": 1348,
+        "char_end": 1371,
+        "bbox_px": [
+          261,
+          916,
+          464,
+          937
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s14",
+        "label": "CRM",
+        "group": "DOC_NUM",
+        "text": "CRM/SP 123456",
+        "char_start": 1372,
+        "char_end": 1385,
+        "bbox_px": [
+          78,
+          944,
+          231,
+          964
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s15",
+        "label": "RQE",
+        "group": "DOC_NUM",
+        "text": "RQE 54321",
+        "char_start": 1402,
+        "char_end": 1411,
+        "bbox_px": [
+          329,
+          944,
+          437,
+          964
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s16",
+        "label": "PHONE",
+        "group": "CONTACT",
+        "text": "(11) 3000-1234",
+        "char_start": 1437,
+        "char_end": 1451,
+        "bbox_px": [
+          296,
+          972,
+          438,
+          995
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s17",
+        "label": "EMAIL",
+        "group": "CONTACT",
+        "text": "joao.pereira@example.com",
+        "char_start": 1459,
+        "char_end": 1483,
+        "bbox_px": [
+          139,
+          1000,
+          387,
+          1023
+        ],
+        "difficulty": "normal"
+      }
+    ],
+    "optional_spans": [
+      {
+        "id": "s01",
+        "label": "CNPJ",
+        "group": "ORG",
+        "text": "11.222.333/0001-81",
+        "char_start": 36,
+        "char_end": 54,
+        "bbox_px": [
+          1015,
+          79,
+          1162,
+          95
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s12",
+        "label": "DATE",
+        "group": "DATE",
+        "text": "15/04/2026",
+        "char_start": 533,
+        "char_end": 543,
+        "bbox_px": [
+          226,
+          430,
+          330,
+          453
+        ],
+        "difficulty": "normal"
+      },
+      {
+        "id": "s18",
+        "label": "DATE",
+        "group": "DATE",
+        "text": "15/04/2026",
+        "char_start": 1495,
+        "char_end": 1505,
+        "bbox_px": [
+          181,
+          1028,
+          285,
+          1050
+        ],
+        "difficulty": "normal"
+      }
+    ],
+    "regions": []
+  }
+}
