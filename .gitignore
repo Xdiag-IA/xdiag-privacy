@@ -50,4 +50,5 @@ desktop/build/
 desktop/dist/
 desktop/dist-artifacts/
 desktop/node_modules/
-desktop/build-assets/
+# build-assets NAO entra aqui: o icone e fonte, nao saida de build, e o CI
+# precisa dele para compilar o instalador.

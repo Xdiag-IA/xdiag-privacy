@@ -1,0 +1,120 @@
+name: Instalador Windows
+
+# Build automatizado e verificavel do instalador. Alem de tirar o build da
+# maquina de alguem, e pre-requisito da SignPath Foundation: eles assinam
+# atestando que o binario saiu deste repositorio publico, entao ele precisa
+# ser produzido aqui, de forma auditavel.
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # --- Interface -----------------------------------------------------
+      # Modo "desktop": base de API vazia, ou seja, chamada relativa, porque
+      # no aplicativo o proprio backend serve o SPA. O modo tem prioridade
+      # sobre .env.local no Vite, entao configuracao de quem desenvolve nunca
+      # entra no instalador.
+      - name: Instalar dependencias da interface
+        working-directory: frontend
+        run: npm ci
+
+      - name: Compilar a interface (modo desktop)
+        working-directory: frontend
+        run: npm run build:desktop
+
+      - name: Conferir que a interface nao fixou endereco de API
+        shell: pwsh
+        run: |
+          $js = Get-ChildItem frontend/dist/assets/*.js
+          $hit = Select-String -Path $js -Pattern "localhost:8800|localhost:8000|127\.0\.0\.1:\d+"
+          if ($hit) {
+            Write-Error "A interface saiu com endereco de API fixo. O instalador nao funcionaria na maquina do usuario."
+            $hit | ForEach-Object { Write-Host $_.Line }
+            exit 1
+          }
+          Write-Host "ok: chamadas relativas"
+
+      # --- Aplicativo ----------------------------------------------------
+      - name: Instalar dependencias do desktop
+        working-directory: desktop
+        run: npm ci
+
+      - name: Conferir o manifesto do runtime
+        shell: pwsh
+        run: |
+          $m = Get-Content desktop/src/runtime-manifest.json | ConvertFrom-Json
+          if (-not $m.sha256) {
+            Write-Error "runtime-manifest.json esta sem sha256. O app recusaria o download, de proposito."
+            exit 1
+          }
+          if ($m.sha256 -notmatch '^[0-9a-f]{64}$') {
+            Write-Error "sha256 do runtime nao parece um hash valido: $($m.sha256)"
+            exit 1
+          }
+          Write-Host "ok: manifesto aponta para $($m.url)"
+
+      - name: Compilar o instalador
+        working-directory: desktop
+        run: npx electron-builder --win --x64 --publish never
+
+      # O instalador NAO carrega o runtime Python: o NSIS e 32 bits e falha ao
+      # mapear payload acima de ~2 GB. Se alguem reintroduzir o runtime no
+      # extraResources, o tamanho denuncia antes de virar um build quebrado.
+      - name: Conferir o tamanho do instalador
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem desktop/dist/*.exe | Select-Object -First 1
+          $mb = [math]::Round($exe.Length / 1MB, 1)
+          Write-Host "$($exe.Name): $mb MB"
+          if ($mb -gt 300) {
+            Write-Error "Instalador com $mb MB. Acima disso, provavelmente o runtime voltou para dentro do pacote."
+            exit 1
+          }
+          if ($mb -lt 40) {
+            Write-Error "Instalador com apenas $mb MB. Algo essencial ficou de fora."
+            exit 1
+          }
+
+      - name: Publicar o artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: XdiagPrivacy-Setup-windows-x64
+          path: |
+            desktop/dist/*.exe
+            desktop/dist/*.blockmap
+          retention-days: 30
+          if-no-files-found: error
+
+      # --- Assinatura ----------------------------------------------------
+      # A ser habilitado quando a inscricao na SignPath Foundation for
+      # aprovada. Deixado explicito para nao virar conhecimento perdido.
+      #
+      # - name: Assinar com a SignPath
+      #   uses: signpath/github-action-submit-signing-request@v1
+      #   with:
+      #     api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+      #     organization-id: "<id da organizacao>"
+      #     project-slug: "xdiag-privacy"
+      #     signing-policy-slug: "release-signing"
+      #     github-artifact-id: ${{ steps.upload.outputs.artifact-id }}
+      #     wait-for-completion: true
+      #     output-artifact-directory: desktop/dist-signed
