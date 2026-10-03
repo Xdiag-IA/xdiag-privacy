@@ -63,8 +63,11 @@ def check_available(settings: Settings) -> None:
 
 def run_lines(
     image: Image.Image, settings: Settings
-) -> list[tuple[list[list[float]], str, float]]:
-    """Retorna [(quadrilatero, texto, confianca 0..1)], uma entrada por linha."""
+) -> list[tuple]:
+    """Retorna [(quadrilatero, texto, confianca 0..1, palavras)], uma por linha.
+
+    `palavras` e [(inicio, fim, quadrilatero)], em caracteres dentro do texto da linha.
+    """
     cmd = _binary(settings)
     lang = _LANG.get(settings.ocr_lang, settings.ocr_lang)
     buf = io.BytesIO()
@@ -81,7 +84,7 @@ def run_lines(
     return _tsv_to_lines(proc.stdout.decode("utf-8", "replace"))
 
 
-def _tsv_to_lines(tsv: str) -> list[tuple[list[list[float]], str, float]]:
+def _tsv_to_lines(tsv: str) -> list[tuple]:
     rows = csv.DictReader(io.StringIO(tsv), delimiter="\t", quoting=csv.QUOTE_NONE)
     groups: dict[tuple[str, str, str], list[dict[str, Any]]] = {}
     for r in rows:
@@ -101,7 +104,7 @@ def _tsv_to_lines(tsv: str) -> list[tuple[list[list[float]], str, float]]:
                 "c": max(float(r["conf"]), 0.0) / 100.0,
             }
         )
-    out: list[tuple[list[list[float]], str, float]] = []
+    out: list[tuple] = []
     for words in groups.values():
         words.sort(key=lambda w: w["l"])
         x0 = min(w["l"] for w in words)
@@ -111,5 +114,17 @@ def _tsv_to_lines(tsv: str) -> list[tuple[list[list[float]], str, float]]:
         bbox = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]]
         text = " ".join(w["t"] for w in words)
         conf = sum(w["c"] for w in words) / len(words)
-        out.append((bbox, text, conf))
+        spans = []
+        pos = 0
+        for w in words:
+            n = len(w["t"])
+            wb = [
+                [w["l"], w["top"]],
+                [w["l"] + w["w"], w["top"]],
+                [w["l"] + w["w"], w["top"] + w["h"]],
+                [w["l"], w["top"] + w["h"]],
+            ]
+            spans.append((pos, pos + n, wb))
+            pos += n + 1  # um espaco entre palavras
+        out.append((bbox, text, conf, spans))
     return out

@@ -66,6 +66,10 @@ class OCRLine:
     confidence: float
     char_start: int
     char_end: int  # exclusive
+    # Opcional, so no Tesseract: [(inicio, fim, quadrilatero)] de cada
+    # palavra, com inicio e fim em caracteres DENTRO da linha. Quando existe,
+    # o mapeador cobre as palavras inteiras em vez de interpolar a posicao.
+    words: list[tuple[int, int, list[list[float]]]] | None = None
 
     def length(self) -> int:
         return self.char_end - self.char_start
@@ -248,13 +252,18 @@ class OCREngine:
         lines: list[OCRLine] = []
         cursor = 0
         text_parts: list[str] = []
-        for bbox, txt, score in raw_lines:
+        for raw in raw_lines:
+            bbox, txt, score = raw[0], raw[1], raw[2]
+            words = raw[3] if len(raw) > 3 else None
             if not txt:
                 continue
             start = cursor
             end = cursor + len(txt)
             lines.append(
-                OCRLine(text=txt, bbox=bbox, confidence=score, char_start=start, char_end=end)
+                OCRLine(
+                    text=txt, bbox=bbox, confidence=score,
+                    char_start=start, char_end=end, words=words,
+                )
             )
             text_parts.append(txt)
             cursor = end + 1  # account for the newline separator

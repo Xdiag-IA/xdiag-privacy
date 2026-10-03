@@ -71,6 +71,29 @@ def _line_subbox(line: OCRLine, char_a: int, char_b: int) -> BBox | None:
     if b <= a:
         return None
 
+    # Com a caixa de cada palavra (Tesseract), cobre as palavras INTEIRAS que
+    # o trecho toca: sem interpolar, sem deixar digito de fora. Cobrir uma
+    # palavra vizinha a mais e inofensivo; cobrir de menos vaza.
+    if line.words and len(line.text) == length:
+        hit = [w for w in line.words if w[1] > a and w[0] < b]
+        if hit:
+            xs = [p[0] for w in hit for p in w[2]]
+            # Largura vem das palavras (precisa); a altura vem da LINHA, porque
+            # a caixa da palavra e justa ao desenho das letras e a da linha
+            # inclui o respiro acima e abaixo, que o gabarito e o olho contam.
+            ys = [p[1] for p in line.bbox]
+            x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys)
+            nchars = max(sum(w[1] - w[0] for w in hit), 1)
+            settings = get_settings()
+            padx = settings.bbox_pad_chars * (x1 - x0) / nchars
+            pady = settings.bbox_pad_lines * (y1 - y0)
+            return [
+                [x0 - padx, y0 - pady],
+                [x1 + padx, y0 - pady],
+                [x1 + padx, y1 + pady],
+                [x0 - padx, y1 + pady],
+            ]
+
     text = line.text
     if len(text) == length:
         cum = _cumulative_widths(text)
