@@ -69,8 +69,10 @@ da pessoa. Quando o sigilo local for necessário, ela deve usar o desktop.
   localizar na imagem e por isso não entregou.
 - `formato_nao_suportado`: aceita PNG, JPG, WEBP e PDF de até 10 páginas. PDF
   acima de 10 páginas (`limite_de_paginas`): peça para mandar em partes.
-- `erro`: diga que não conseguiu processar e repita o `detalhe`. Não tente
-  outro caminho para ler o documento.
+- `erro`: diga que não conseguiu processar e repita o `detalhe`. **O arquivo
+  recebido já foi apagado** (retenção desligada), então você **não pode rodar de
+  novo** sem ele: peça que a pessoa **reenvie o arquivo**. Não tente outro
+  caminho para ler o documento, nem converta o arquivo por conta própria.
 
 ## Regras de privacidade (valem sempre)
 

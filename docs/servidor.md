@@ -142,7 +142,9 @@ principal.**
 O que o modo servidor faz, e o que ele deixa a cargo de quem o integra:
 
 - **Entrada:** `--apagar-entrada` apaga o arquivo recebido ao terminar, em
-  qualquer resultado. Sem a opção, o comando não mexe na entrada.
+  qualquer resultado, **inclusive quando o comando falha**. Quem integra deve pedir
+  que a pessoa reenvie o arquivo, em vez de tentar rodar de novo. Sem a opção, o
+  comando não mexe na entrada.
 - **Saída:** o arquivo tarjado fica na pasta de `--saida` até **você** apagá-lo.
   Quem integra deve apagá-lo depois de entregar (veja o exemplo, que o faz na
   próxima execução).
@@ -176,6 +178,14 @@ valida, une e arredonda, como se fossem dele.
 - **Falha fechada:** se a chamada falha, ou devolve algo ilegível, o comando
   sai com erro e **não entrega nada**, em vez de seguir só com as regras em
   silêncio.
+- **Formato forçado:** a chamada usa `--json-schema`, e o Claude Code devolve a
+  resposta já validada (`structured_output`), sem depender de o modelo escrever
+  só JSON. Se mesmo assim vier texto livre, o código procura o JSON dentro dele.
+  Cada bloco tem **2 tentativas**; só falha de credencial ou programa ausente não
+  repete.
+- **O diagnóstico do erro não leva conteúdo do documento:** só o motivo de
+  parada e o tamanho da resposta, por exemplo
+  `camada LLM nao devolveu JSON (parada=end_turn, resposta de 312 caracteres)`.
 - Desligada por padrão: só liga com `XDIAG_PII_LLM=claude`.
 
 ## Qualidade medida
