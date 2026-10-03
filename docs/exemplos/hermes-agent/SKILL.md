@@ -10,7 +10,7 @@ metadata:
 
 # Anonimizar documento (Xdiag Privacy, modo servidor)
 
-Esta skill apaga os dados pessoais de **uma imagem ou PDF de uma página** e
+Esta skill apaga os dados pessoais de **uma imagem ou PDF de até 10 páginas** e
 devolve a versão tarjada, com o pixel apagado (não uma camada por cima).
 
 ## Quando usar
@@ -52,8 +52,8 @@ A resposta é **uma linha de JSON**. Leia estes campos:
 
 **Se `ok` é `true`:** mande a imagem na resposta com a etiqueta
 `MEDIA:<arquivo>` (o `arquivo` do JSON, sem alterar), diga em uma frase quantos
-dados cobriu e de que tipos, e peça que a pessoa **confira a imagem antes de
-compartilhar**: ela diz "ok" ou aponta o que ficou de fora. Repita os `avisos`.
+dados cobriu e de que tipos, e peça que a pessoa **confira o arquivo antes de
+compartilhar** (em PDF, todas as páginas): ela diz "ok" ou aponta o que ficou de fora. Repita os `avisos`.
 Na **primeira vez da conversa**, acrescente este lembrete: o documento passou
 pelo WhatsApp, pelo servidor e por um modelo de IA (o Claude), então não há o
 sigilo absoluto do aplicativo desktop do Xdiag Privacy, que roda só na máquina
@@ -67,8 +67,8 @@ da pessoa. Quando o sigilo local for necessário, ela deve usar o desktop.
   que, assim, dado pessoal pode ficar à mostra.
 - `entidade_sem_posicao`: diga que achou dado pessoal que não conseguiu
   localizar na imagem e por isso não entregou.
-- `formato_nao_suportado`: aceita PNG, JPG, WEBP e PDF de **uma** página. PDF
-  de várias páginas: peça uma página por vez.
+- `formato_nao_suportado`: aceita PNG, JPG, WEBP e PDF de até 10 páginas. PDF
+  acima de 10 páginas (`limite_de_paginas`): peça para mandar em partes.
 - `erro`: diga que não conseguiu processar e repita o `detalhe`. Não tente
   outro caminho para ler o documento.
 

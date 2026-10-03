@@ -1,7 +1,7 @@
 # Modo servidor (VPS, sem interface)
 
 Um perfil opcional do Xdiag Privacy para rodar **num servidor**, sem a interface
-web e sem o aplicativo desktop: você entrega uma imagem ou um PDF de uma página
+web e sem o aplicativo desktop: você entrega uma imagem ou um PDF de até 10 páginas
 a um comando e recebe de volta a imagem com os dados pessoais apagados. Serve
 para integrar a anonimização a um fluxo automático, como um agente de IA que
 recebe documentos por WhatsApp (veja o [exemplo com o Hermes Agent](exemplo-hermes-agent.md)),
@@ -79,15 +79,29 @@ defina `XDIAG_OCR_ENGINE=tesseract XDIAG_PII_ENGINE=rules` e não use `--perfil`
 | `--forcar` | Entrega mesmo quando o portão de qualidade recusa |
 | `--limite N` | Confiança mínima da detecção (padrão 0,5) |
 
-Aceita PNG, JPG, WEBP e **PDF de uma página**. PDF de várias páginas é recusado,
-como no export do projeto, de propósito.
+Aceita PNG, JPG, WEBP e **PDF de até 10 páginas** (`--max-paginas` muda o limite).
+Um PDF acima do limite é recusado (código 4, `limite_de_paginas`), em vez de
+processar só uma parte em silêncio.
+
+- **Imagem gera PNG; PDF gera PDF.** O PDF de saída tem as páginas tarjadas e é
+  **só de imagem**: sem camada de texto (a do original não sobrevive) e sem
+  metadado do original. Ele leva apenas um título com o nome novo do arquivo e
+  a data de geração.
+- **As páginas são detectadas em paralelo** (até 4 por vez), porque cada uma é
+  uma chamada à camada de IA. Um PDF de 10 páginas leva uns 10 s só com regras.
+- **Tudo ou nada:** se uma página tem dado achado no texto e sem posição na
+  imagem, o documento inteiro não é entregue (código 3, com a lista das
+  páginas).
+- **O portão de qualidade vale para o documento inteiro:** uma página em
+  branco ou só de imagem não o barra, mas entra nos `avisos` ("página 4: pouco
+  texto lido") para você conferir.
 
 ### O que o comando devolve
 
 Uma linha de JSON na saída padrão, **sem os valores encontrados**:
 
 ```json
-{"ok": true, "arquivo": "/…/saida/anonimizado_2026-10-03_a1b2c3.png",
+{"ok": true, "arquivo": "/…/saida/anonimizado_2026-10-03_a1b2c3.png", "paginas": 1,
  "cobertos": 15, "por_tipo": {"[NOME]": 3, "[CPF]": 1, "[EMAIL]": 2},
  "qualidade": {"caracteres": 811, "confianca": 0.92, "menor_lado_px": 1240},
  "avisos": ["a ferramenta auxilia e nao garante: confira a imagem antes de compartilhar"]}
@@ -98,7 +112,7 @@ Uma linha de JSON na saída padrão, **sem os valores encontrados**:
 | 0 | Arquivo gravado |
 | 2 | **Qualidade ruim**: não entrega (use `--forcar` para ignorar) |
 | 3 | Dado achado no texto, mas sem posição na imagem: **não entrega** (falha fechada) |
-| 4 | Formato não suportado (PDF de várias páginas, tipo desconhecido) |
+| 4 | Formato não suportado, ou PDF acima do limite de páginas |
 | 5 | Erro (OCR, camada de IA, arquivo ilegível) |
 
 Nenhuma mensagem de erro carrega trecho do documento.
@@ -210,7 +224,9 @@ Perfis: `whatsapp`, `sombra`, `inclinado`, `pior`. O PDF do corpus fica de fora.
   desenhar uma tarja pelo comando. Está no roadmap
   (`anonimizar.py --tarjar x0,y0,x1,y1`). Enquanto isso, use o aplicativo
   desktop, onde a tarja se desenha à mão.
-- **Documento de várias páginas:** recusado, como no export do projeto.
+- **PDF com mais de 10 páginas:** recusado. Mande em partes. (O aplicativo desktop
+  ainda exporta só o texto de documento de várias páginas; o modo servidor exporta
+  um PDF de imagens.)
 - **Código de barras, QR, assinatura e cabeçalho de ultrassom:** nenhum OCR de
   texto os detecta, nem no perfil completo.
 - **Foto torta ou pequena demais:** o OCR perde o texto (veja o portão de

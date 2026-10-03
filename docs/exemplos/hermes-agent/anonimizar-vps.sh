@@ -25,7 +25,7 @@ ARQ="${1:-}"
 shift
 
 if [ ! -e "$RAIZ/MANTER" ]; then
-  find "$SAIDA" -maxdepth 1 -name 'anonimizado_*.png' -mmin +60 -delete 2>/dev/null || true
+  find "$SAIDA" -maxdepth 1 \( -name 'anonimizado_*.png' -o -name 'anonimizado_*.pdf' \) -mmin +60 -delete 2>/dev/null || true
   APAGAR="--apagar-entrada"
 else
   APAGAR=""

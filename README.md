@@ -194,7 +194,9 @@ Ser honesto sobre os limites é parte da ferramenta:
 - **Não anonimiza o conteúdo clínico.** Uma combinação rara de diagnóstico,
   data e cidade pode reidentificar alguém mesmo sem nome nem CPF. Isso é
   julgamento humano.
-- **Documento com mais de uma página exporta só o texto por enquanto.** O
+- **Documento com mais de uma página exporta só o texto por enquanto** (no
+  aplicativo e no Docker; o [modo servidor](docs/servidor.md) exporta PDF de até 10
+  páginas). O
   export de imagem multipágina ainda não está pronto e fica bloqueado de
   propósito, em vez de exportar só a primeira página em silêncio.
 - **Não faz OCR de manuscrito.** Letra de médico à mão continua sendo letra de
@@ -250,7 +252,7 @@ python scripts/generate_samples.py
 ## Modo servidor (VPS, sem interface)
 
 Um perfil opcional para rodar **num servidor**, chamado por um comando: você
-entrega uma imagem ou um PDF de uma página e recebe a imagem com os dados
+entrega uma imagem ou um PDF de até 10 páginas e recebe o arquivo com os dados
 pessoais apagados. Serve para integrar a anonimização a um fluxo automático, como
 um agente de IA que recebe documentos por WhatsApp (há um
 [exemplo com o Hermes Agent](docs/exemplo-hermes-agent.md)).
