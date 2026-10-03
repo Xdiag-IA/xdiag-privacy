@@ -116,6 +116,13 @@ class OCREngine:
             self._loaded = True
             logger.info("OCR engine running in mock mode")
             return
+        if self.settings.ocr_engine == "tesseract":
+            from . import ocr_tesseract
+
+            ocr_tesseract.check_available(self.settings)
+            self._loaded = True
+            logger.info("OCR engine: Tesseract")
+            return
         with self._lock:
             if self._engine is not None:
                 return
@@ -170,6 +177,14 @@ class OCREngine:
             res = self._mock_result(image.width, image.height)
             res.image_png = canonical_png
             return res
+
+        if self.settings.ocr_engine == "tesseract":
+            from . import ocr_tesseract
+
+            raw_lines = ocr_tesseract.run_lines(image, self.settings)
+            result = self._build_result(image.width, image.height, raw_lines)
+            result.image_png = canonical_png
+            return result
 
         if self._engine is None:
             self.warmup()

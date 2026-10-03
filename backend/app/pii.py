@@ -306,6 +306,11 @@ class PIIEngine:
             self._backend = "mock"
             logger.info("PII engine running in mock mode")
             return
+        if self.settings.pii_engine == "rules":
+            self._loaded = True
+            self._backend = "rules"
+            logger.info("PII engine running in rules-only mode (no model)")
+            return
         with self._lock:
             if self._pipe is not None:
                 return
@@ -347,6 +352,10 @@ class PIIEngine:
             return []
         if self.settings.mock_mode:
             return self._mock_detect(text, threshold)
+        if self.settings.pii_engine == "rules":
+            # Sem modelo: so o que o pipeline acha por regra (padroes
+            # brasileiros e nome rotulado). Mesma saida, mesma validacao.
+            return self._pipeline([], text, threshold)
         if self._pipe is None:
             self.warmup()
         assert self._pipe is not None
