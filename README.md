@@ -454,6 +454,8 @@ Qualquer redistribuição precisa manter a nota de atribuição do modelo OpenMe
 - Modo air gapped: modelos pré-baixados e validados por hash, sem nenhuma
   busca na inicialização
 - Suporte a documentos com mais de um idioma
+- Tarja manual no modo sem interface (`anonimizar.py --tarjar x0,y0,x1,y1`),
+  para corrigir o que a detecção deixou de fora sem abrir a tela
 
 ---
 
