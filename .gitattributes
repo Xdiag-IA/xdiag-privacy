@@ -1,0 +1,2 @@
+# Scripts de shell precisam de LF: um checkout no Windows com CRLF os quebra no Linux.
+*.sh text eol=lf
