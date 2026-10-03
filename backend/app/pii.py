@@ -353,9 +353,15 @@ class PIIEngine:
         if self.settings.mock_mode:
             return self._mock_detect(text, threshold)
         if self.settings.pii_engine == "rules":
-            # Sem modelo: so o que o pipeline acha por regra (padroes
-            # brasileiros e nome rotulado). Mesma saida, mesma validacao.
-            return self._pipeline([], text, threshold)
+            # Sem modelo local: as regras (padroes brasileiros e nome
+            # rotulado) e, se ligada, a camada LLM, que entra como se fosse
+            # o modelo. Mesma saida, mesma validacao.
+            extra: list[PIIEntity] = []
+            if self.settings.pii_llm == "claude":
+                from . import pii_llm
+
+                extra = pii_llm.detect(text, self.settings)
+            return self._pipeline(extra, text, threshold)
         if self._pipe is None:
             self.warmup()
         assert self._pipe is not None
