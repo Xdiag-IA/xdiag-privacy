@@ -19,6 +19,16 @@ inteligência artificial em saúde, com médicos no time.
 > continua responsável pelo uso legítimo, pela retenção, pelo registro de
 > operações (Art. 37 da LGPD) e pelo descarte seguro.
 
+> ### ℹ️ Existe um modo servidor, e ele não tem o mesmo sigilo
+>
+> Tudo o que este README diz sobre "rodar inteiramente na sua máquina" vale
+> para o **aplicativo desktop e para o Docker**. Há também um
+> [modo servidor](docs/servidor.md), opcional, para rodar numa VPS sem
+> interface. Nele, com a camada de IA ligada, o **texto lido do documento é
+> enviado a um serviço externo**, e o sigilo absoluto da anonimização local
+> **não se aplica**. Quem envia decide se serve para aquele documento e
+> responde por isso.
+
 ---
 
 ## Índice
@@ -30,6 +40,7 @@ inteligência artificial em saúde, com médicos no time.
 - [A tarja apaga o pixel, não cobre](#a-tarja-apaga-o-pixel-não-cobre)
 - [O que ele não faz](#o-que-ele-não-faz)
 - [Como rodar](#como-rodar)
+- [Modo servidor (VPS, sem interface)](#modo-servidor-vps-sem-interface)
 - [Provando que nada sai da máquina](#provando-que-nada-sai-da-máquina)
 - [Qualidade e regressão](#qualidade-e-regressão)
 - [Configuração](#configuração)
@@ -183,7 +194,9 @@ Ser honesto sobre os limites é parte da ferramenta:
 - **Não anonimiza o conteúdo clínico.** Uma combinação rara de diagnóstico,
   data e cidade pode reidentificar alguém mesmo sem nome nem CPF. Isso é
   julgamento humano.
-- **Documento com mais de uma página exporta só o texto por enquanto.** O
+- **Documento com mais de uma página exporta só o texto por enquanto** (no
+  aplicativo e no Docker; o [modo servidor](docs/servidor.md) exporta PDF de até 10
+  páginas). O
   export de imagem multipágina ainda não está pronto e fica bloqueado de
   propósito, em vez de exportar só a primeira página em silêncio.
 - **Não faz OCR de manuscrito.** Letra de médico à mão continua sendo letra de
@@ -236,7 +249,38 @@ Para gerar mais:
 python scripts/generate_samples.py
 ```
 
+## Modo servidor (VPS, sem interface)
+
+Um perfil opcional para rodar **num servidor**, chamado por um comando: você
+entrega uma imagem ou um PDF de até 10 páginas e recebe o arquivo com os dados
+pessoais apagados. Serve para integrar a anonimização a um fluxo automático, como
+um agente de IA que recebe documentos por WhatsApp (há um
+[exemplo com o Hermes Agent](docs/exemplo-hermes-agent.md)).
+
+- **Leve:** Tesseract no lugar do PaddleOCR, e regras brasileiras mais o Claude
+  (chamado pelo Claude Code) no lugar do modelo local. Sem Docker, sem GPU, uns
+  80 MB de RAM e 1,5 a 6 s por documento.
+- **Sem o sigilo local.** Com a camada de IA, o texto lido do documento vai a um
+  serviço externo. Só regras, sem a camada de IA, não envia nada a ninguém, mas
+  cobre bem menos (recall de 0,55 contra 0,92 no corpus sintético).
+- **Falha fechada, e portão de qualidade:** se o OCR lê mal, o comando recusa a
+  entrega e pede outra foto, em vez de devolver um arquivo com dado à mostra.
+
+```bash
+sudo apt-get install -y tesseract-ocr tesseract-ocr-por python3-venv python3-pil
+python3 -m venv --system-site-packages .venv
+.venv/bin/pip install numpy pydantic pypdfium2
+.venv/bin/python scripts/anonimizar.py foto.jpg --saida ./saida --perfil vps
+```
+
+Instalação, opções, códigos de saída, privacidade, qualidade medida e limites:
+[`docs/servidor.md`](docs/servidor.md).
+
 ## Provando que nada sai da máquina
+
+Isto vale para o **perfil completo** (desktop e Docker). O
+[modo servidor](docs/servidor.md) com a camada de IA envia o texto a um serviço
+externo e **não** passa neste teste.
 
 A promessa de rodar offline não deveria ser aceita na base da confiança. Depois
 da primeira execução, com os modelos já em cache, suba o sistema e observe o
@@ -279,6 +323,18 @@ Os baselines ficam versionados em `tests/baselines/`. Uma execução que piore o
 recall de qualquer rótulo retorna código de saída 1. A regra é rodar antes e
 depois de cada bloco de mudança, e reverter o que piorar.
 
+O corpus de `tests/corpus/` é imagem limpa. Para medir foto de celular (torta,
+escura, comprimida, pequena), `scripts/degrade_corpus.py` gera versões
+degradadas **determinísticas** do corpus, com o gabarito ajustado:
+
+```bash
+python scripts/degrade_corpus.py --out ../xdiag-privacy-degradado
+python scripts/evaluate.py --level full --corpus ../xdiag-privacy-degradado/inclinado
+```
+
+Os resultados do modo servidor nesses corpora estão em
+[`docs/servidor.md`](docs/servidor.md#qualidade-medida).
+
 ## Configuração
 
 Tudo é configurável por variável de ambiente, no `docker-compose.yml`:
@@ -293,6 +349,22 @@ Tudo é configurável por variável de ambiente, no `docker-compose.yml`:
 | `XDIAG_PII_MODEL` | OpenMed 568M | Modelo de detecção de PII |
 | `XDIAG_OCR_USE_GPU` | `0` | Usa GPU no OCR |
 | `XDIAG_PII_DEVICE` | `-1` | `-1` para CPU, `0` para a primeira GPU |
+
+### Modo servidor
+
+Só valem no [modo servidor](docs/servidor.md). Os padrões mantêm o perfil
+completo (PaddleOCR e o modelo local).
+
+| Variável | Padrão | O que faz |
+| --- | --- | --- |
+| `XDIAG_OCR_ENGINE` | `paddle` | `tesseract` troca o OCR por um subprocesso do Tesseract |
+| `XDIAG_PII_ENGINE` | `model` | `rules` roda só as regras brasileiras, sem o modelo local |
+| `XDIAG_PII_LLM` | vazio | `claude` liga a camada de IA (envia o texto a um serviço externo) |
+| `XDIAG_CLAUDE_CMD` | `claude` do `PATH` | Caminho do Claude Code |
+| `XDIAG_LLM_MODEL` | `claude-sonnet-5` | Modelo da camada de IA |
+| `XDIAG_LLM_TIMEOUT` | `120` | Tempo máximo de cada chamada, em segundos |
+| `XDIAG_TESSERACT_CMD` | `tesseract` do `PATH` | Caminho do Tesseract |
+| `XDIAG_TESSDATA_DIR` | do sistema | Pasta dos idiomas do Tesseract |
 
 ### Máquina com pouca memória
 
@@ -370,7 +442,9 @@ correspondente na imagem. A interface bloqueia o export até você revisar.
 backend/app/
   main.py       FastAPI, CORS, arquivos estáticos
   ocr.py        PaddleOCR e o mapa de deslocamento de caracteres
+  ocr_tesseract.py  OCR por Tesseract (modo servidor)
   pii.py        modelo OpenMed, rótulos, cores e marcadores
+  pii_llm.py    camada de IA por Claude Code (modo servidor, opcional)
   patterns.py   padrões e validadores brasileiros (CPF, CNPJ, CNS)
   mapper.py     converte posição no texto em retângulo na imagem
   models.py     schemas Pydantic
@@ -385,6 +459,8 @@ frontend/src/
 desktop/        empacotamento para Windows, em desenvolvimento
 samples/        documentos sintéticos de demonstração
 scripts/        geração de corpus, avaliação de recall, smoke test
+                anonimizar.py (modo servidor) e degrade_corpus.py (foto de celular)
+docs/           modo servidor e o exemplo de integração com um agente
 tests/          corpus com gabarito e baselines de regressão
 ```
 
@@ -454,6 +530,8 @@ Qualquer redistribuição precisa manter a nota de atribuição do modelo OpenMe
 - Modo air gapped: modelos pré-baixados e validados por hash, sem nenhuma
   busca na inicialização
 - Suporte a documentos com mais de um idioma
+- Tarja manual no modo sem interface (`anonimizar.py --tarjar x0,y0,x1,y1`),
+  para corrigir o que a detecção deixou de fora sem abrir a tela
 
 ---
 

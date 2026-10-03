@@ -61,6 +61,24 @@ class Settings:
     ocr_use_gpu: bool = False
     ocr_det_db_box_thresh: float = 0.5
 
+    # Motores. "paddle" + "model" e o perfil completo (desktop e Docker).
+    # "tesseract" + "rules" e o perfil leve (xdiag-privacy-VPS): OCR por
+    # Tesseract e deteccao so por regras brasileiras, sem modelo de PII.
+    ocr_engine: str = "paddle"
+    pii_engine: str = "model"
+    # Binario do Tesseract e pasta dos idiomas (tessdata). Vazio usa o PATH
+    # e o TESSDATA_PREFIX do sistema.
+    tesseract_cmd: str = ""
+    tessdata_dir: Path | None = None
+
+    # Segunda camada de PII por LLM, so no perfil leve (pii_engine=rules).
+    # Vazio = desligada. "claude" = Claude Code em modo -p. Manda o TEXTO do
+    # documento a um servico externo: nunca liga por padrao.
+    pii_llm: str = ""
+    claude_cmd: str = ""
+    llm_model: str = "claude-sonnet-5"
+    llm_timeout_s: int = 120
+
     # PII model
     pii_model: str = "OpenMed/OpenMed-PII-Portuguese-SnowflakeMed-Large-568M-v1"
     pii_device: int = -1  # transformers convention, negative means CPU
@@ -130,6 +148,14 @@ class Settings:
             ocr_use_angle_cls=_bool(os.getenv("XDIAG_OCR_USE_ANGLE_CLS"), True),
             ocr_use_gpu=_bool(os.getenv("XDIAG_OCR_USE_GPU"), False),
             ocr_det_db_box_thresh=_float(os.getenv("XDIAG_OCR_DET_THRESH"), 0.5),
+            ocr_engine=os.getenv("XDIAG_OCR_ENGINE", "paddle").strip().lower(),
+            pii_engine=os.getenv("XDIAG_PII_ENGINE", "model").strip().lower(),
+            tesseract_cmd=os.getenv("XDIAG_TESSERACT_CMD", "").strip(),
+            tessdata_dir=_path(os.getenv("XDIAG_TESSDATA_DIR")),
+            pii_llm=os.getenv("XDIAG_PII_LLM", "").strip().lower(),
+            claude_cmd=os.getenv("XDIAG_CLAUDE_CMD", "").strip(),
+            llm_model=os.getenv("XDIAG_LLM_MODEL", "claude-sonnet-5").strip(),
+            llm_timeout_s=_int(os.getenv("XDIAG_LLM_TIMEOUT"), 120),
             pii_model=os.getenv(
                 "XDIAG_PII_MODEL",
                 "OpenMed/OpenMed-PII-Portuguese-SnowflakeMed-Large-568M-v1",
