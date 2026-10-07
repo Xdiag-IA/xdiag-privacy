@@ -114,6 +114,7 @@ def split_output(work, destination, units, limit):
 
 
 def run_batch(incoming, outgoing, engine, limit):
+    incoming, outgoing = incoming.resolve(), outgoing.resolve()
     print('Conferindo os arquivos do lote...', flush=True)
     files = []
     for directory, dirs, names in os.walk(incoming, followlinks=False):
