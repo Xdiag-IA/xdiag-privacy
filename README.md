@@ -1,5 +1,10 @@
 # Xdiag Privacy
 
+**Novo perfil experimental:** [documentos longos em lote local](docs/LOTE_LOCAL.md).
+Um agente pode processar uma pasta do computador (TXT, DOCX, PDF e imagens),
+retomar interrupções e entregar textos em partes numeradas para revisão.
+Esse perfil gera TXT; não preserva a diagramação dos originais.
+
 **Anonimização visual de documentos médicos brasileiros, rodando inteiramente na sua máquina.**
 
 Você arrasta um laudo, uma ficha, uma receita ou uma guia TISS. A ferramenta lê
