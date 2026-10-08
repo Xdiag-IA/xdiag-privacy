@@ -14,6 +14,11 @@ concluída significa processamento concluído, não anonimização garantida.
 
 ## Uso pelo aluno com um agente
 
+O fluxo é: **pasta de documentos → processamento local → outra pasta com
+textos para revisão**. Os documentos não precisam ficar dentro do repositório.
+O agente instala e executa o programa; o modelo de detecção roda no computador.
+Não é necessário colar o conteúdo dos documentos na conversa.
+
 Instale o aplicativo desktop com acesso a projetos locais e terminal. Abra
 uma pasta de projeto, por exemplo `C:\dev\privacy`. Guarde os documentos em
 outra pasta, por exemplo `C:\Documentos\Auditoria`. Não anexe os originais à
@@ -28,14 +33,24 @@ conversa. Cole o prompt abaixo, trocando o caminho:
 > até terminar. Se houver interrupção, retome o lote. Informe apenas contagens,
 > pendências e onde estão os resultados. Use o modelo local completo.
 
-O prompt depende de esta feature estar presente na versão clonada. Em uma
-videoaula, mostre documentos fictícios. A primeira instalação baixa
+Em uma videoaula, mostre documentos fictícios. A primeira instalação baixa
 dependências e cerca de 2,3 GB de pesos; não cabe prometer uma instalação
 instantânea nem um tempo fixo por lote.
 
 ## Instalação no Windows
 
 Pré-requisitos: Git e Python 3.10, 3.11 ou 3.12 disponíveis no terminal.
+
+Crie ou abra `C:\dev\privacy` como projeto local. A estrutura pode ser:
+
+```text
+C:\dev\privacy\xdiag-privacy\            programa e modelos
+C:\Documentos\Auditoria\                documentos originais e subpastas
+C:\Documentos\Auditoria-anonimizada\    resultados e checkpoints
+```
+
+Execute os comandos abaixo a partir da pasta do projeto. Nas próximas
+utilizações, a instalação pode ser reutilizada; basta executar o lote.
 
 ```powershell
 git clone https://github.com/Xdiag-IA/xdiag-privacy.git
@@ -55,10 +70,10 @@ no processo, não um firewall do sistema operacional.
 .\anonimizar-lote.cmd --entrada "C:\Documentos\Auditoria" --saida "C:\Documentos\Auditoria-anonimizada"
 ```
 
-Para partes menores:
+Para partes menores, como no teste de 40 páginas descrito abaixo:
 
 ```powershell
-.\anonimizar-lote.cmd --entrada "C:\Documentos\Auditoria" --saida "C:\Documentos\Auditoria-anonimizada" --max-caracteres 50000
+.\anonimizar-lote.cmd --entrada "C:\Documentos\Auditoria" --saida "C:\Documentos\Auditoria-anonimizada" --max-caracteres 20000
 ```
 
 As pastas de entrada e saída precisam ser separadas. Use uma saída vazia na
@@ -99,6 +114,19 @@ retomada recusada. Código 130: interrupção pelo usuário.
 
 ## Limites desta primeira versão
 
+### Formatos de entrada e resultado
+
+| Entrada | Tratamento | Saída |
+| --- | --- | --- |
+| TXT UTF-8 | Detecção sobre o texto | Uma ou mais partes TXT |
+| DOCX | Extração de texto e OCR nas imagens compatíveis | Uma ou mais partes TXT |
+| PDF com texto | Extração página a página | Uma ou mais partes TXT |
+| PDF digitalizado | OCR local página a página | Uma ou mais partes TXT |
+| PNG, JPG, WEBP e TIFF | OCR local | Uma ou mais partes TXT |
+| DOC antigo | Não suportado; converter antes para DOCX | Pendência no relatório |
+
+### Restrições conhecidas
+
 - DOC antigo, arquivos protegidos por senha, anexos incorporados ao Word e
   formatos não listados não são convertidos silenciosamente.
 - Alterações controladas no Word precisam ser resolvidas antes da execução.
@@ -117,6 +145,13 @@ retomada recusada. Código 130: interrupção pelo usuário.
 
 ## Orientações para o agente
 
+Se o programa não iniciar, confira Python, instalação dos modelos, permissões
+das pastas e se outro processo já está usando a mesma saída. Se a retomada
+for recusada após mudanças na entrada ou na configuração, use uma nova pasta
+de saída; não apague o relatório para forçar a continuação. Erros em documentos
+individuais ficam registrados como pendências, enquanto os demais podem ser
+concluídos. Não trate um lote com pendências como entrega integral.
+
 1. Prepare o código e os modelos antes de processar documentos reais.
 2. Não use ferramentas de leitura de arquivos, OCR remoto, APIs de LLM nem
    anexos da conversa para inspecionar o conteúdo da pasta indicada.
@@ -129,6 +164,35 @@ retomada recusada. Código 130: interrupção pelo usuário.
 6. Entregue caminhos, totais e pendências. Diga que a revisão continua pendente.
 
 ## Testes de desenvolvimento
+
+### Teste demonstrativo em 8 de outubro de 2026
+
+Um caso fictício de auditoria foi processado com o modelo completo em CPU,
+entrada externa ao repositório e limite de 20.000 caracteres por parte:
+
+| Documento | Unidades processadas | Partes TXT | Substituições |
+| --- | ---: | ---: | ---: |
+| Relatório PDF de 40 páginas | 40 páginas | 5 | 1.169 |
+| Ficha de pagamento PNG | 1 imagem | 1 | 21 |
+| Ata DOCX de 3 páginas | 1 unidade de texto | 1 | 51 |
+
+O lote terminou sem erros de processamento, em aproximadamente dois minutos
+na máquina utilizada. Esse tempo é uma observação, não uma previsão para
+outros computadores. Os originais permaneceram intactos e todas as partes
+respeitaram o limite configurado.
+
+A busca pelos valores fictícios conhecidos não encontrou nomes completos ou
+fragmentos dos nomes, CPFs, CNPJ, e-mails, telefones, logradouro, CEP ou conta
+bancária remanescentes. Os três valores monetários conferidos no PDF e no Word
+foram preservados. **Uma ocorrência do protocolo do caso permaneceu no PDF.**
+A conferência manual considerou o resultado adequado para o exemplo.
+
+Esse resultado não certifica anonimização completa: a busca por valores
+conhecidos não cobre variações desconhecidas nem todos os erros de OCR.
+Documentos reais exigem revisão. Os arquivos de entrada, resultados, modelos
+e dados locais dessa demonstração não são publicados no repositório.
+
+### Execução dos testes automatizados
 
 ```powershell
 .venv-lote\Scripts\python.exe -m pip install -r requirements-lote-test.txt

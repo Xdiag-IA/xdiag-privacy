@@ -45,6 +45,7 @@ inteligência artificial em saúde, com médicos no time.
 - [A tarja apaga o pixel, não cobre](#a-tarja-apaga-o-pixel-não-cobre)
 - [O que ele não faz](#o-que-ele-não-faz)
 - [Como rodar](#como-rodar)
+- [Documentos longos em lote local](docs/LOTE_LOCAL.md)
 - [Modo servidor (VPS, sem interface)](#modo-servidor-vps-sem-interface)
 - [Provando que nada sai da máquina](#provando-que-nada-sai-da-máquina)
 - [Qualidade e regressão](#qualidade-e-regressão)
