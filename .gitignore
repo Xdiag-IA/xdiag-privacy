@@ -5,6 +5,10 @@ __pycache__/
 *.so
 .Python
 .venv/
+.venv-lote/
+/entrada/
+/saida/
+/modelos-lote/
 venv/
 env/
 .pytest_cache/

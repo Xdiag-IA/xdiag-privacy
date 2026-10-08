@@ -1,0 +1,20 @@
+name: Lote local
+on:
+  pull_request:
+    paths:
+      - 'scripts/lote_local/**'
+      - 'scripts/test_lote*'
+      - 'requirements-lote*'
+      - '.github/workflows/lote-local.yml'
+  workflow_dispatch:
+jobs:
+  formatos-e-retomada:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -r requirements-lote-test.txt
+      - run: python scripts/lote_local/preparar_ocr.py
+      - run: python scripts/test_lote_local.py
